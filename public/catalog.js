@@ -1,6 +1,7 @@
 // Room and site element types with their display colours (2D fill / 3D floor).
 export const ROOM_TYPES = {
-  living: { label: 'Living / kitchen', color: '#f6e7c8' },
+  living: { label: 'Living room', color: '#f6e7c8' },
+  kitchen: { label: 'Kitchen', color: '#f3dcb2' },
   bedroom: { label: 'Bedroom', color: '#dfe9f5' },
   bathroom: { label: 'Bathroom', color: '#d4eef0' },
   wc: { label: 'WC', color: '#d4eef0' },

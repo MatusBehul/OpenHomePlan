@@ -10,3 +10,4 @@ rates-cache.json
 
 # built public page
 site/dist/
+site/dist-nginx/

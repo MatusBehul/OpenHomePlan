@@ -9,14 +9,19 @@ import { houseToDxf } from './dxf.js';
 import { download, fileSlug } from './download.js';
 import { create3D } from './view3d.js';
 import { estimateCsv, estimateHtml } from './costExport.js';
+import { request, DEMO } from './backend.js';
 
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const slug = new URLSearchParams(location.search).get('house');
-const api = async (path) => {
-  const res = await fetch(`/api/houses/${encodeURIComponent(slug)}/${path}`);
-  if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-  return res.json();
+const api = (path) => request('GET', `api/houses/${encodeURIComponent(slug)}/${path}`);
+// the online demo can't save, so it hands over the plan as it is in the window that opened us
+const openerHouse = () => {
+  try {
+    return DEMO ? window.opener?.openhomeplanHouse || null : null;
+  } catch {
+    return null;
+  }
 };
 
 const PAPER = { A3: { w: 420, h: 297, margin: 10 }, A4: { w: 297, h: 210, margin: 8 } };
@@ -225,7 +230,7 @@ async function render() {
 
 async function boot() {
   if (!slug) throw new Error('No house given (?house=…)');
-  [house, comments, { text: briefText }] = await Promise.all([api('house'), api('comments'), api('brief')]);
+  [house, comments, { text: briefText }] = await Promise.all([openerHouse() || api('house'), api('comments'), api('brief')]);
   document.title = `${house.name || 'House'} – plans`;
   $('#title').textContent = `${house.name || 'House'} – plans`;
   const has = {

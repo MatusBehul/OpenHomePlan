@@ -27,7 +27,7 @@ export const POINT_KINDS = {
 export const GROUPS = { electrical: 'Electrical', water: 'Water & drainage', gas: 'Gas' };
 
 // Sockets per room type (general purpose; appliances get their own on top).
-const SOCKETS = { living: 8, bedroom: 4, office: 6, hall: 2, bathroom: 1, wc: 0, closet: 1, storage: 1, technical: 2, utility: 2, other: 2, stairs: 0, void: 0 };
+const SOCKETS = { living: 8, kitchen: 4, bedroom: 4, office: 6, hall: 2, bathroom: 1, wc: 0, closet: 1, storage: 1, technical: 2, utility: 2, other: 2, stairs: 0, void: 0 };
 const LIGHT_W = 20; // LED fitting
 const GENERAL_SOCKET_CIRCUIT_W = 2000; // assumed load of a general socket circuit
 const MAX_SOCKETS_PER_CIRCUIT = 10;

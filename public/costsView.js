@@ -2,17 +2,13 @@
 import { estimate, money, COST_GROUPS, DEFAULT_PRICES, ITEM_PRICES, costSettings, displayFx, BASE_CURRENCY } from './costs.js';
 import { estimateCsv } from './costExport.js';
 import { download, fileSlug } from './download.js';
+import { request } from './backend.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 // shown until rates have been downloaded once (the ECB list is used after that)
 const CURRENCIES = ['EUR', 'CZK', 'PLN', 'HUF', 'CHF', 'GBP', 'USD'];
 
-async function downloadRates(refresh) {
-  const res = await fetch(`/api/rates${refresh ? '?refresh=1' : ''}`);
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error || res.statusText);
-  return data;
-}
+const downloadRates = (refresh) => request('GET', `api/rates${refresh ? '?refresh=1' : ''}`);
 const GROUP_COLORS = { shell: '#7a8699', openings: '#4a90d9', finishes: '#c9a46a', services: '#e08a3c', fittings: '#8bb174', furniture: '#b48ead', site: '#5aa59a', fees: '#a3a3a3' };
 
 export function createCostsView(container, store, onPrint) {

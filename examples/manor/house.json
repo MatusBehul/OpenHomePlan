@@ -140,7 +140,7 @@
         {
           "id": "kitchen",
           "name": "Kitchen & dining",
-          "type": "living",
+          "type": "kitchen",
           "x": 7,
           "y": 0,
           "w": 6,

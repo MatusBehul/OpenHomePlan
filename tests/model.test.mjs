@@ -16,6 +16,7 @@ const { syncRoofZones, roundRoofs } = await mod('roof.js');
 const { fixDuplicateIds } = await mod('model.js');
 const { analyzeStairs, stairSteps } = await mod('stairs.js');
 const { buildBrief, briefMarkdown } = await mod('brief.js');
+const { ROOM_TYPES } = await mod('catalog.js');
 
 const examples = fs.readdirSync(path.join(ROOT, 'examples')).filter((d) => fs.existsSync(path.join(ROOT, 'examples', d, 'house.json')));
 const load = (d) => JSON.parse(fs.readFileSync(path.join(ROOT, 'examples', d, 'house.json'), 'utf8'));
@@ -24,6 +25,7 @@ for (const d of examples) {
   test(`example "${d}" is consistent`, () => {
     const h = load(d);
     assert.equal(fixDuplicateIds(h), 0, 'ids must be unique per floor');
+    for (const r of h.floors.flatMap((f) => f.rooms)) assert.ok(r.type in ROOM_TYPES, `room ${r.id} has unknown type "${r.type}"`);
     const t = g.totals(h);
     for (const f of t.floors) {
       assert.ok(f.overlap < 0.001, `${f.name}: rooms overlap`);

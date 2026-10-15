@@ -29,3 +29,14 @@ test('the public page builds in every language', () => {
     assert.doesNotMatch(html, /<a (?:class="[^"]*" )?href="https?:[^"]*"(?! target)/, 'external links open in a new tab');
   }
 });
+
+test('the online demo is built with its templates and marked as the demo', () => {
+  build();
+  const dir = new URL('../site/dist/demo/', import.meta.url).pathname;
+  for (const page of ['index.html', 'print.html']) assert.match(readFileSync(dir + page, 'utf8'), /<meta name="openhomeplan-demo" content="1">/);
+  const index = JSON.parse(readFileSync(dir + 'demo-houses/index.json', 'utf8'));
+  assert.deepEqual(index.map((h) => h.slug), ['family-house', 'manor', 'blank']);
+  for (const h of index) assert.ok(JSON.parse(readFileSync(`${dir}demo-houses/${h.slug}/house.json`, 'utf8')).floors.length);
+  const csp = readFileSync(new URL('../site/dist-nginx/demo-headers.conf', import.meta.url), 'utf8');
+  assert.match(csp, /script-src 'self' 'sha256-[^']+' 'sha256-[^']+'/);
+});

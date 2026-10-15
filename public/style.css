@@ -21,6 +21,13 @@ body { display: flex; flex-direction: column; }
 button, input, select, textarea { font: inherit; color: inherit; }
 .hidden { display: none !important; }
 
+/* ---------- online demo ---------- */
+.demo-banner {
+  flex: none; padding: 7px 14px; background: #fff4d6; border-bottom: 1px solid #ecd9a0;
+  color: #5c4500; font-size: 13px; line-height: 1.4;
+}
+.demo-banner a { color: inherit; font-weight: 600; }
+
 /* ---------- top bar ---------- */
 .topbar {
   display: flex; align-items: center; gap: 8px 12px; flex-wrap: wrap; flex: none;

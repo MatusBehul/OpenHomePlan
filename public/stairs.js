@@ -232,7 +232,7 @@ function uniqueId(floor, base) {
   return id;
 }
 
-const WALKABLE = new Set(['hall', 'living', 'other', 'office', 'utility', 'storage']);
+const WALKABLE = new Set(['hall', 'living', 'kitchen', 'other', 'office', 'utility', 'storage']);
 
 // Try to make the stairs usable. Returns { actions: [...], remaining: [...] }.
 export function fixStairs(house, floor, room) {

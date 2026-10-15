@@ -20,28 +20,21 @@ import { estimateCsv } from './costExport.js';
 import { FACADE_DEFAULTS, facadeSettings } from './facade.js';
 import { isShaped, SHAPED, toShape, toRect, measure, syncBox } from './shapes.js';
 import { estimate, moneyFor } from './costs.js';
+import { request, DEMO, DEMO_NOTICE, INSTALL_URL, houseFiles } from './backend.js';
 
 const $ = (sel, el = document) => el.querySelector(sel);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 
 // ---------- api ----------
 
-async function api(method, url, body) {
-  const res = await fetch(url, {
-    method,
-    headers: body ? { 'Content-Type': 'application/json' } : {},
-    body: body ? JSON.stringify(body) : undefined,
-  });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error || `${res.status} ${res.statusText}`);
-  return data;
-}
+const api = request;
 
 // ---------- houses ----------
 
 // Every house lives in its own folder on the server; the open one is in the URL (?house=…).
-const houseApi = (path) => `/api/houses/${encodeURIComponent(store.slug)}/${path}`;
-export const assetUrl = (file) => `/houses/${encodeURIComponent(store.slug)}/${file}`;
+// Paths are relative so the same files also work as the online demo under /demo/.
+const houseApi = (path) => `api/houses/${encodeURIComponent(store.slug)}/${path}`;
+export const assetUrl = (file) => `${houseFiles(store.slug)}${file}`;
 
 function rememberHouse(slug) {
   try {
@@ -58,11 +51,11 @@ function openHouse(slug) {
 }
 
 async function renderHousePicker() {
-  const houses = await api('GET', '/api/houses');
+  const houses = await api('GET', 'api/houses');
   const picker = $('#house-picker');
   picker.innerHTML =
     houses.map((h) => `<option value="${esc(h.slug)}" ${h.slug === store.slug ? 'selected' : ''} title="${esc(h.description || '')}">${esc(h.name)}</option>`).join('') +
-    '<option value="__new">＋ New house…</option>';
+    (DEMO ? '' : '<option value="__new">＋ New house…</option>');
   picker.onchange = () => {
     if (picker.value === '__new') {
       picker.value = store.slug;
@@ -73,7 +66,7 @@ async function renderHousePicker() {
 }
 
 async function newHouseDialog() {
-  const { templates, housesDir } = await api('GET', '/api/config');
+  const { templates, housesDir } = await api('GET', 'api/config');
   const dlg = $('#new-house');
   const source = $('#new-house-source', dlg);
   source.innerHTML =
@@ -88,7 +81,7 @@ async function newHouseDialog() {
     if (!name) return toast('Give the house a name', true);
     const [kind, id] = source.value.split(':');
     try {
-      const { slug } = await api('POST', '/api/houses', kind === 'duplicate' ? { name, duplicate: id } : { name, template: id });
+      const { slug } = await api('POST', 'api/houses', kind === 'duplicate' ? { name, duplicate: id } : { name, template: id });
       dlg.close();
       openHouse(slug);
     } catch (err) {
@@ -251,6 +244,7 @@ function describeChanges(before, after) {
 }
 
 async function save() {
+  if (DEMO) return toast(DEMO_NOTICE, true);
   if (!store.dirty) return;
   const btn = $('#save');
   btn.disabled = true;
@@ -307,7 +301,7 @@ function updateTopbar() {
     );
   $('#undo').disabled = !store.history.undo.length;
   $('#redo').disabled = !store.history.redo.length;
-  $('#save').disabled = !store.dirty;
+  $('#save').disabled = DEMO || !store.dirty;
   $('#discard').disabled = !store.dirty;
   document.title = `${store.dirty ? '● ' : ''}${store.house.name || 'House'} · OpenHomePlan`;
 }
@@ -1144,6 +1138,7 @@ function finishAt(room, path) {
 }
 
 async function uploadTexture(file) {
+  if (DEMO) throw new Error(DEMO_NOTICE);
   const res = await fetch(houseApi(`assets?name=${encodeURIComponent(file.name)}`), { method: 'POST', body: file });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.error || res.statusText);
@@ -1697,13 +1692,13 @@ function renderComments() {
   panel.innerHTML = `
     <h2>Comments on ${esc(t.name)}</h2>
     <ul class="comment-list">${mine.map((c) => commentItem(c, false)).join('') || '<li class="empty">No comments yet.</li>'}</ul>
-    <div style="margin-top:10px">
+    ${DEMO ? `<p class="empty">Comments are saved as files next to your house, so they need the <a href="${INSTALL_URL}" target="_blank" rel="noopener">installed app</a>.</p>` : `<div style="margin-top:10px">
       <textarea id="comment-text" placeholder="Write a comment about ${esc(t.name)}…">${esc(draft)}</textarea>
       <div class="row" style="justify-content:flex-end;margin-top:6px">
         <button class="primary" id="comment-add">Add comment</button>
       </div>
-    </div>`;
-  $('#comment-add', panel).onclick = async () => {
+    </div>`}`;
+  if ($('#comment-add', panel)) $('#comment-add', panel).onclick = async () => {
     const text = $('#comment-text', panel).value.trim();
     if (!text) return toast('Write something first', true);
     try {
@@ -1741,7 +1736,7 @@ async function loadHistory() {
           (e) => `<li><code>${esc(e.hash)}</code><span>${esc(e.subject)}</span>
             <span class="when">${esc(new Date(e.date).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }))} · ${esc(e.author)}</span></li>`,
         )
-        .join('') || '<li class="empty">No commits yet.</li>';
+        .join('') || `<li class="empty">${DEMO ? 'The online demo keeps no history.' : 'No commits yet.'}</li>`;
   } catch (err) {
     $('#history').innerHTML = `<li class="empty">History unavailable: ${esc(err.message)}</li>`;
   }
@@ -1782,8 +1777,20 @@ async function showView(view) {
 
 // ---------- boot ----------
 
+// The online demo says up front, and keeps saying, that nothing is kept.
+function demoBanner() {
+  document.body.classList.add('demo');
+  $('#save').textContent = 'Saving off';
+  $('#save').title = DEMO_NOTICE;
+  document.body.insertAdjacentHTML(
+    'afterbegin',
+    `<div class="demo-banner" role="note"><b>Online demo.</b> Explore and change anything, but nothing is saved: your changes are lost when you reload or close this tab. Exports download to your own computer. <a href="${INSTALL_URL}" target="_blank" rel="noopener">Install OpenHomePlan (free)</a> to keep your houses.</div>`,
+  );
+}
+
 async function boot() {
-  const houses = await api('GET', '/api/houses');
+  if (DEMO) demoBanner();
+  const houses = await api('GET', 'api/houses');
   let last = null;
   try {
     last = localStorage.getItem('openhomeplan:last-house') || localStorage.getItem('house-planner:last-house');
@@ -1858,11 +1865,13 @@ async function boot() {
     else toast('That item no longer exists in the plan', true);
   };
   async function openPrint(only) {
-    if (store.dirty) {
+    // the demo can't save, so the print tab reads the plan as it is now from this window
+    if (DEMO) window.openhomeplanHouse = JSON.parse(JSON.stringify(store.house));
+    else if (store.dirty) {
       if (!confirm('The printout is made from the saved version. Save your changes first?')) return;
       await save();
     }
-    window.open(`/print.html?house=${encodeURIComponent(store.slug)}${only ? `&only=${only}` : ''}`, '_blank');
+    window.open(`print.html?house=${encodeURIComponent(store.slug)}${only ? `&only=${only}` : ''}`, '_blank');
   }
   $('#export-menu').addEventListener('click', async (e) => {
     const kind = e.target.closest('[data-export]')?.dataset.export;

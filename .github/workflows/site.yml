@@ -5,7 +5,7 @@ name: Public page
 on:
   push:
     branches: [main]
-    paths: ['site/**', 'deploy/site/**', '.github/workflows/site.yml']
+    paths: ['site/**', 'deploy/site/**', 'public/**', 'examples/**', 'package.json', 'package-lock.json', '.github/workflows/site.yml']
   workflow_dispatch:
 
 permissions:

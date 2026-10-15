@@ -2,7 +2,11 @@
 
 The page in `site/` is a static site in several languages: `site/src/page.html` is the template,
 `site/i18n/<code>.json` holds the text, and `npm run site` renders them into `site/dist/` (English at
-`/`, other languages at `/<code>/`). The Docker build runs the same step. It runs on Cloud Run (project `openhomeplan`, region
+`/`, other languages at `/<code>/`). The same build puts an online demo of the app in `/demo/`:
+`public/` plus the templates from `examples/` and the Three.js files, as static files. It can't
+save anything (there is no server behind it), says so in a banner, and gets its own
+Content-Security-Policy (`site/dist-nginx/demo-headers.conf`, with hashes of the import maps). The
+Docker build runs the same step. It runs on Cloud Run (project `openhomeplan`, region
 `europe-west1`, service `openhomeplan-site`) behind `https://openhomeplan.wadby.tech`, and is
 deployed by `.github/workflows/site.yml` whenever `site/` or `deploy/site/` changes on `main`.
 The planner itself is never hosted: it runs on each user's own computer.
