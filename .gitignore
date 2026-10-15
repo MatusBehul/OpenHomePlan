@@ -4,6 +4,7 @@ node_modules
 
 # your own houses (each is its own git repository) and local settings
 houses/
+houses-archive/
 planner.config.json
 rates-cache.json
 
