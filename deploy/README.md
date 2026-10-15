@@ -1,6 +1,8 @@
 # Deploying the public page
 
-The page in `site/` is a static site. It runs on Cloud Run (project `openhomeplan`, region
+The page in `site/` is a static site in several languages: `site/src/page.html` is the template,
+`site/i18n/<code>.json` holds the text, and `npm run site` renders them into `site/dist/` (English at
+`/`, other languages at `/<code>/`). The Docker build runs the same step. It runs on Cloud Run (project `openhomeplan`, region
 `europe-west1`, service `openhomeplan-site`) behind `https://openhomeplan.wadby.tech`, and is
 deployed by `.github/workflows/site.yml` whenever `site/` or `deploy/site/` changes on `main`.
 The planner itself is never hosted: it runs on each user's own computer.
@@ -72,6 +74,8 @@ Cloud Run's free tier. The only other costs are a few MB in Artifact Registry.
 ## Test locally
 
 ```sh
+npm run site                                     # then open site/dist/index.html
+# or the real container:
 docker build -f deploy/site/Dockerfile -t openhomeplan-site .
 docker run --rm -p 8080:8080 openhomeplan-site   # http://localhost:8080
 ```

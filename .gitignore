@@ -6,3 +6,6 @@ node_modules
 houses/
 planner.config.json
 rates-cache.json
+
+# built public page
+site/dist/

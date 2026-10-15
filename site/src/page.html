@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="{{lang}}" dir="{{dir}}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OpenHomePlan – {{meta.title}}</title>
+  <meta name="description" content="{{meta.description}}">
+  <meta name="referrer" content="no-referrer">
+  <meta property="og:title" content="OpenHomePlan">
+  <meta property="og:description" content="{{meta.og}}">
+  <meta property="og:image" content="{{site}}img/render-hero.jpg">
+  <meta property="og:url" content="{{url}}">
+  <meta property="og:locale" content="{{locale}}">
+  <link rel="canonical" href="{{url}}">
+{{alternates}}
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M4 15 16 5l12 10v12H4z' fill='%232f6fd6'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="{{root}}style.css">
+</head>
+<body>
+  <header class="top">
+    <a class="brand" href="#"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M4 15 16 5l12 10v12H4z"/></svg>OpenHomePlan</a>
+    <nav>
+      <a href="#features">{{nav.features}}</a>
+      <a href="#install">{{nav.install}}</a>
+      <a href="#use">{{nav.use}}</a>
+      <a href="#ai">{{nav.ai}}</a>
+      <a href="#help">{{nav.help}}</a>
+      <a class="gh" href="{{repo}}">GitHub</a>
+      <details class="lang">
+        <summary aria-label="{{nav.language}}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm6.9 6h-2.9a15.7 15.7 0 0 0-1.4-3.6A8 8 0 0 1 18.9 8ZM12 4c.8 1.2 1.5 2.5 1.9 4h-3.8c.4-1.5 1.1-2.8 1.9-4ZM4.3 14a8 8 0 0 1 0-4h3.4a16.5 16.5 0 0 0 0 4H4.3Zm.8 2h2.9c.3 1.3.8 2.5 1.4 3.6A8 8 0 0 1 5.1 16ZM8 8H5.1a8 8 0 0 1 4.3-3.6C8.8 5.5 8.3 6.7 8 8Zm4 12c-.8-1.2-1.5-2.5-1.9-4h3.8c-.4 1.5-1.1 2.8-1.9 4Zm2.3-6H9.7a14.7 14.7 0 0 1 0-4h4.6a14.7 14.7 0 0 1 0 4Zm.3 5.6c.6-1.1 1.1-2.3 1.4-3.6h2.9a8 8 0 0 1-4.3 3.6Zm1.7-5.6a16.5 16.5 0 0 0 0-4h3.4a8 8 0 0 1 0 4h-3.4Z"/></svg>{{langName}}</summary>
+        <ul>
+{{languages}}
+        </ul>
+      </details>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-text">
+        <h1>{{hero.title}}</h1>
+        <p class="lead">{{hero.lead}}</p>
+        <div class="cta">
+          <a class="button primary" href="#install">{{hero.install}}</a>
+          <a class="button" href="{{repo}}">{{hero.source}}</a>
+        </div>
+        <p class="small">{{hero.audience}}</p>
+      </div>
+      <figure class="hero-img">
+        <img src="{{root}}img/render-hero.jpg" width="1600" height="900" alt="{{alt.hero}}">
+      </figure>
+    </section>
+
+    <section class="shots" aria-label="{{shots.label}}">
+      <figure><a href="{{root}}img/app-plan.jpg"><img src="{{root}}img/app-plan.jpg" width="1440" height="900" loading="lazy" alt="{{alt.plan}}"></a><figcaption>{{shots.plan}}</figcaption></figure>
+      <figure><a href="{{root}}img/render-cut.jpg"><img src="{{root}}img/render-cut.jpg" width="1200" height="800" loading="lazy" alt="{{alt.cut}}"></a><figcaption>{{shots.cut}}</figcaption></figure>
+      <figure><a href="{{root}}img/app-electrical.jpg"><img src="{{root}}img/app-electrical.jpg" width="1440" height="900" loading="lazy" alt="{{alt.electrical}}"></a><figcaption>{{shots.electrical}}</figcaption></figure>
+      <figure><a href="{{root}}img/app-costs.jpg"><img src="{{root}}img/app-costs.jpg" width="1440" height="900" loading="lazy" alt="{{alt.costs}}"></a><figcaption>{{shots.costs}}</figcaption></figure>
+      <figure><a href="{{root}}img/print-sheet.jpg"><img src="{{root}}img/print-sheet.jpg" width="1600" height="1130" loading="lazy" alt="{{alt.print}}"></a><figcaption>{{shots.print}}</figcaption></figure>
+      <figure><a href="{{root}}img/render-street.jpg"><img src="{{root}}img/render-street.jpg" width="1200" height="800" loading="lazy" alt="{{alt.street}}"></a><figcaption>{{shots.street}}</figcaption></figure>
+    </section>
+
+    <section id="features">
+      <h2>{{features.title}}</h2>
+      <div class="grid">
+        <article><h3>{{features.design}}</h3><ul>{{list:features.designItems}}</ul></article>
+        <article><h3>{{features.check}}</h3><ul>{{list:features.checkItems}}</ul></article>
+        <article><h3>{{features.fit}}</h3><ul>{{list:features.fitItems}}</ul></article>
+        <article><h3>{{features.share}}</h3><ul>{{list:features.shareItems}}</ul></article>
+      </div>
+    </section>
+
+    <section id="how" class="split">
+      <div>
+        <h2>{{how.title}}</h2>
+        <p>{{how.p1}}</p>
+        <p>{{how.p2}}</p>
+      </div>
+      <pre class="tree" aria-label="{{how.treeLabel}}">houses/
+  my-house/
+    house.json          {{how.tree.design}}
+    BRIEF.md            {{how.tree.brief}}
+    comments/open/      {{how.tree.comments}}
+    comments/resolved/
+    assets/             {{how.tree.assets}}
+    .git/               {{how.tree.history}}</pre>
+    </section>
+
+    <section id="install">
+      <h2>{{install.title}}</h2>
+      <p>{{install.need}}</p>
+      <pre><code>git clone {{repo}}.git
+cd OpenHomePlan
+npm install
+npm start</code></pre>
+      <p>{{install.open}}</p>
+      <details>
+        <summary>{{install.cloudTitle}}</summary>
+        <p>{{install.cloudText}}</p>
+        <pre><code>HOUSES_DIR=~/Dropbox/houses npm start</code></pre>
+        <p>{{install.cloudMore}}</p>
+      </details>
+      <details>
+        <summary>{{install.updateTitle}}</summary>
+        <pre><code>git pull
+npm install
+npm start</code></pre>
+        <p>{{install.updateText}}</p>
+      </details>
+    </section>
+
+    <section id="use">
+      <h2>{{use.title}}</h2>
+      <ol class="steps">{{list:use.steps}}</ol>
+    </section>
+
+    <section id="ai" class="split">
+      <div>
+        <h2>{{ai.title}}</h2>
+        <p>{{ai.p1}}</p>
+        <ol>{{list:ai.steps}}</ol>
+        <p>{{ai.p2}}</p>
+      </div>
+      <figure><img src="{{root}}img/render-upper.jpg" width="1200" height="800" loading="lazy" alt="{{alt.upper}}"></figure>
+    </section>
+
+    <section id="help" class="help">
+      <h2>{{help.title}}</h2>
+      <p>{{help.p1}}</p>
+      <ul>{{list:help.items}}</ul>
+      <div class="cta">
+        <a class="button primary" href="{{repo}}/issues/new?template=expert-review.yml">{{help.review}}</a>
+        <a class="button" href="{{repo}}/issues">{{help.issues}}</a>
+      </div>
+      <p>{{help.devs}}</p>
+      <p class="small">{{help.translate}}</p>
+    </section>
+
+    <section class="split small-print">
+      <div>
+        <h2>{{privacy.title}}</h2>
+        <p>{{privacy.text}}</p>
+      </div>
+      <div>
+        <h2>{{permit.title}}</h2>
+        <p>{{permit.text}}</p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>{{footer.license}} · <a href="{{repo}}">{{footer.source}}</a> · <a href="{{repo}}/blob/main/CONTRIBUTING.md">{{footer.contributing}}</a> · <a href="{{repo}}/blob/main/CODE_OF_CONDUCT.md">{{footer.conduct}}</a></p>
+    <p class="small">{{footer.translation}}</p>
+  </footer>
+</body>
+</html>

@@ -41,6 +41,15 @@ estimators: the rules and example prices in this tool are simplified on purpose,
 surely wrong for your country. Open an **Expert review** issue with what should change and why;
 you don't need to write code.
 
+## Translating the public page
+
+The page at https://openhomeplan.wadby.tech is built from `site/src/page.html` and one text file
+per language in `site/i18n/`. To add a language, copy `site/i18n/en.json` to `<code>.json` (ISO
+639-1, e.g. `nl.json`), translate the values (keep the keys, the HTML tags and `{{repo}}`), set
+`langName` to the language's own name and `locale` (e.g. `nl_NL`), and run `npm run site` and
+`npm test` to check it. To fix an existing translation, just edit its file. Existing translations
+were made with AI help, so corrections from native speakers are very welcome.
+
 ## Working with an AI assistant
 
 The repository is set up for Claude Code (`CLAUDE.md` describes the code and the data model,
