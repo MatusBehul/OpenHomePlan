@@ -76,7 +76,9 @@ without overlaps or gaps.
   rates (cached in `rates-cache.json`).
 - `site[]`: plot, garage, terrace, pool, greenhouse, driveway, path… (`x`, `y`, `w`, `h`);
   garage/shed/greenhouse/carport/pergola also take `height` and `roof` (same fields as the house
-  roof, default flat); trees/conifers/bushes/hedges use w/h as the crown and `height`. The plot
+  roof, default flat); trees/conifers/bushes/hedges use w/h as the crown and `height`; a `slope` is ground rising to
+  `height` towards `up` (N/S/E/W); any site element can be raised by `base` (m), e.g. a sauna on a
+  cellar roof. The plot
   sets `street` (N/S/E/W, for the site plan label) and can carry `points` (polygon) and driveway/path `points` + `width` (curved centre line); x/y/w/h
   stay the bounding box (`public/shapes.js`, call `syncBox` after editing points).
 - `roof` (single roof) or `roofs[]` (roof areas: `id`, `name`, `on` floor id, wall-axis `x/y/w/h`,

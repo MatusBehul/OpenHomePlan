@@ -1532,6 +1532,23 @@ export function create3D(container, store) {
         }
         break;
       }
+      case 'slope': {
+        // ground rising towards `up` (N/S/E/W) to `height`: a grassy wedge
+        const H = s.height ?? 1;
+        const up = s.up || 'S';
+        const along = up === 'N' || up === 'S';
+        const L = along ? s.h : s.w; // rising over this length
+        const shape = new THREE.Shape([new THREE.Vector2(0, 0), new THREE.Vector2(L, 0), new THREE.Vector2(L, H)]);
+        const geo = new THREE.ExtrudeGeometry(shape, { depth: along ? s.w : s.h, bevelEnabled: false });
+        const wedge = new THREE.Mesh(geo, mat('#9fbf7c'));
+        // the profile is drawn in the x/y plane rising towards +x, then turned to face `up`
+        const [px, pz, turn] = { E: [s.x, s.y, 0], W: [s.x + s.w, s.y + s.h, Math.PI], S: [s.x + s.w, s.y, -Math.PI / 2], N: [s.x, s.y + s.h, Math.PI / 2] }[up];
+        wedge.position.set(px, 0, pz);
+        wedge.rotation.y = turn;
+        wedge.castShadow = wedge.receiveShadow = true;
+        g.add(wedge);
+        break;
+      }
       case 'driveway':
       case 'path': {
         const material = mat(s.type === 'driveway' ? '#9d9a94' : '#c8c2b6');
@@ -1619,6 +1636,7 @@ export function create3D(container, store) {
       }
     }
     g.traverse((o) => (o.userData.target = `site/${s.id}`));
+    if (s.base) g.position.y = s.base; // raised, e.g. standing on top of another element
     if (s.type !== 'plot') {
       const count = store.openComments(`site/${s.id}`);
       if (count) {

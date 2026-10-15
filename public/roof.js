@@ -340,8 +340,10 @@ export const kneeWall = (floor) => (floor?.underRoof ? Math.max(0, Number(floor.
 export function atticZoneAt(house, floor, x, y) {
   if (!floor?.underRoof) return null;
   const eave = (floor.elevation ?? 0) + kneeWall(floor);
-  const z = roofZones(house).find(({ geom: g }) => x > g.outer.x && x < g.outer.x + g.outer.w && y > g.outer.y && y < g.outer.y + g.outer.h && Math.abs(g.eave - eave) < 0.5);
-  return z ? z.geom : null;
+  // where roof areas overlap (a cross gable over the main roof) the higher one is the ceiling
+  const zs = roofZones(house).filter(({ geom: g }) => x > g.outer.x && x < g.outer.x + g.outer.w && y > g.outer.y && y < g.outer.y + g.outer.h && Math.abs(g.eave - eave) < 0.5);
+  if (zs.length < 2) return zs[0]?.geom || null;
+  return zs.map((z) => z.geom).sort((a, b) => (roofHeightAt(b, x, y) ?? 0) - (roofHeightAt(a, x, y) ?? 0))[0];
 }
 
 // The roof that covers an attic floor (at the middle of its rooms), or null.

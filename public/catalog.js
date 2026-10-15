@@ -32,6 +32,7 @@ export const SITE_TYPES = {
   bush: { label: 'Bush', color: '#8cbf6a' },
   hedge: { label: 'Hedge', color: '#5f9447' },
   garden: { label: 'Garden bed (planting)', color: '#c9e2b3' },
+  slope: { label: 'Slope / higher ground', color: '#b9d39a' },
   other: { label: 'Other', color: '#e8e8e8' },
 };
 

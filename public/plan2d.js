@@ -609,8 +609,10 @@ export function createPlan(container, store, opts = {}) {
 
     // site (ground floor only)
     if (isGround) {
-      const order = ['plot', 'garden', 'driveway', 'path', 'terrace', 'pool', 'greenhouse', 'garage', 'shed', 'hedge', 'bush', 'conifer', 'tree', 'carport', 'pergola'];
-      const sorted = [...house.site].sort((a, b) => (order.indexOf(a.type) + 1 || 99) - (order.indexOf(b.type) + 1 || 99));
+      const order = ['plot', 'slope', 'garden', 'driveway', 'path', 'terrace', 'pool', 'greenhouse', 'garage', 'shed', 'hedge', 'bush', 'conifer', 'tree', 'carport', 'pergola'];
+      // raised elements (standing on top of another one) are drawn last
+      const rank = (s) => (s.base ? 100 : 0) + (order.indexOf(s.type) + 1 || 99);
+      const sorted = [...house.site].sort((a, b) => rank(a) - rank(b));
       parts.push(...sorted.map((s) => siteElement(s, px)));
     } else {
       // ghost of the floor below

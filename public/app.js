@@ -630,7 +630,7 @@ function renderSelection() {
 
   const { item, kind, floor } = t;
   const types = kind === 'room' ? ROOM_TYPES : SITE_TYPES;
-  const hasHeight = kind === 'site' && ['garage', 'greenhouse', 'shed', 'carport', 'pergola', 'tree', 'conifer', 'bush', 'hedge'].includes(item.type);
+  const hasHeight = kind === 'site' && ['garage', 'greenhouse', 'shed', 'carport', 'pergola', 'tree', 'conifer', 'bush', 'hedge', 'slope', 'other'].includes(item.type);
   const shaped = kind === 'site' && isShaped(item);
   const shapeable = kind === 'site' && item.type in SHAPED;
   panel.innerHTML = `
@@ -669,6 +669,11 @@ function renderSelection() {
             In the plan: drag a round point to move it, drag a small + to add a point, double-click a point to remove it, drag the shape itself to move all of it.</div>
            <div class="row" style="margin-bottom:8px"><button class="small" id="shape-rect">Back to a rectangle</button></div>`
         : `<div class="row" style="margin-bottom:8px"><button class="small" id="shape-edit">${item.type === 'plot' ? 'Irregular shape (drag the corners)' : 'Make it curved'}</button></div>`
+      : ''}
+    ${kind === 'site' && item.type !== 'plot'
+      ? `<div class="fields">${numberField('base', 'Raised by (m, e.g. on a roof)', item.base ?? 0, 0.1)}${item.type === 'slope'
+          ? `<label>Rises towards<select data-key="up">${[['N', 'North'], ['S', 'South'], ['E', 'East'], ['W', 'West']].map(([v, l]) => `<option value="${v}" ${v === (item.up || 'S') ? 'selected' : ''}>${l}</option>`).join('')}</select></label>`
+          : ''}</div>`
       : ''}
     ${kind === 'site' && item.type === 'plot'
       ? `<div class="fields"><label>Street side<select data-key="street">
