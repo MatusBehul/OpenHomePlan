@@ -1,0 +1,59 @@
+:root { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif; color: #23262b; }
+body { margin: 0; background: #e9e6e0; }
+.toolbar { position: sticky; top: 0; z-index: 2; display: flex; gap: 14px; align-items: center; flex-wrap: wrap; padding: 10px 16px; background: #fff; border-bottom: 1px solid #ddd; font-size: 13px; }
+.toolbar select, .toolbar button { font: inherit; padding: 5px 8px; border: 1px solid #d6d2ca; border-radius: 6px; background: #fff; cursor: pointer; }
+.toolbar button.primary { background: #2f6fd6; border-color: #2f6fd6; color: #fff; font-weight: 600; }
+.toolbar .sheets { display: flex; gap: 10px; flex-wrap: wrap; }
+.toolbar .sheets label { display: inline-flex; gap: 4px; align-items: center; }
+.toolbar .spacer { flex: 1; }
+.hint { margin: 10px 16px; font-size: 12px; color: #6b7078; }
+#pages { display: flex; flex-direction: column; align-items: center; gap: 18px; padding: 10px 0 40px; }
+
+.sheet { background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,.15); position: relative; box-sizing: border-box; overflow: hidden; page: sheet; }
+.sheet.A3 { width: 420mm; height: 297mm; padding: 10mm; }
+.sheet.A4 { width: 297mm; height: 210mm; padding: 8mm; }
+.frame { position: absolute; inset: 7mm; border: 0.5mm solid #23262b; pointer-events: none; }
+.drawing { position: absolute; left: 10mm; top: 10mm; }
+.drawing svg { display: block; }
+.titleblock { position: absolute; right: 7mm; bottom: 7mm; width: 120mm; border: 0.4mm solid #23262b; border-right: 0; border-bottom: 0; background: #fff;
+  display: grid; grid-template-columns: 1fr 1fr; font-size: 2.6mm; }
+.titleblock div { padding: 1.2mm 2mm; border-bottom: 0.2mm solid #999; border-right: 0.2mm solid #999; }
+.titleblock .wide { grid-column: span 2; }
+.titleblock .big { font-size: 4.2mm; font-weight: 700; }
+.titleblock small { display: block; color: #666; font-size: 2mm; }
+.titleblock .note { font-size: 2mm; color: #555; }
+.views { position: absolute; display: grid; grid-template-columns: 1fr 1fr; grid-auto-rows: 1fr; gap: 4mm; }
+.views figure { margin: 0; display: flex; flex-direction: column; min-height: 0; }
+.views img { width: 100%; flex: 1; min-height: 0; object-fit: cover; border: 0.2mm solid #ccc; }
+.views figcaption { font-size: 3mm; margin-top: 1mm; color: #333; }
+.legend { position: absolute; left: 9mm; bottom: 9mm; background: #fff; border: 0.2mm solid #999; padding: 1.5mm 2.5mm; font-size: 2.4mm; display: flex; gap: 3mm; flex-wrap: wrap; max-width: 250mm; }
+.legend span { display: inline-flex; align-items: center; gap: 1.2mm; }
+.legend i { display: inline-block; width: 5mm; }
+.north { position: absolute; right: 12mm; top: 12mm; width: 14mm; height: 18mm; }
+.scalebar { position: absolute; right: 135mm; bottom: 9mm; font-size: 2.4mm; }
+
+.brief { background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,.15); width: 210mm; box-sizing: border-box; padding: 16mm 16mm 20mm; font-size: 3.2mm; line-height: 1.45; page: brief; }
+.brief h1 { font-size: 7mm; margin: 0 0 2mm; }
+.brief h2 { font-size: 4.6mm; margin: 7mm 0 2mm; border-bottom: 0.3mm solid #23262b; padding-bottom: 1mm; break-after: avoid; }
+.brief .disclaimer { color: #666; font-size: 2.8mm; }
+.brief table { width: 100%; border-collapse: collapse; font-size: 2.7mm; margin: 2mm 0; }
+.brief th, .brief td { border: 0.2mm solid #ccc; padding: 1mm 1.5mm; text-align: left; vertical-align: top; }
+.brief th { background: #f3f1ec; }
+.brief tr { break-inside: avoid; }
+.brief td.num, .brief th.num { text-align: right; white-space: nowrap; }
+.brief tr.group th { background: #ebe7df; }
+.brief tr.off td { color: #999; }
+.brief table.summary { width: auto; font-size: 3.2mm; }
+.brief table.summary th { background: none; padding-right: 6mm; }
+.brief pre { white-space: pre-wrap; font: inherit; background: #f8f7f4; padding: 3mm; border-radius: 1mm; }
+
+@page sheet { size: A3 landscape; margin: 0; }
+@page sheetA4 { size: A4 landscape; margin: 0; }
+@page brief { size: A4 portrait; margin: 0; }
+.sheet.A4 { page: sheetA4; }
+@media print {
+  body { background: #fff; }
+  .toolbar, .hint { display: none; }
+  #pages { display: block; padding: 0; }
+  .sheet, .brief { box-shadow: none; break-after: page; }
+}

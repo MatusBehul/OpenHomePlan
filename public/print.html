@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Plans · OpenHomePlan</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Cpath d=%22M4 15 16 5l12 10v13H4z%22 fill=%22%232f6fd6%22/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="print.css">
+  <script type="importmap">
+    { "imports": { "three": "/vendor/three/build/three.module.js", "three/addons/": "/vendor/three/examples/jsm/" } }
+  </script>
+</head>
+<body>
+  <header class="toolbar">
+    <b id="title">Plans</b>
+    <label>Paper <select id="paper"><option value="A3">A3 landscape</option><option value="A4">A4 landscape</option></select></label>
+    <label>Scale <select id="scale"><option value="auto">Auto (largest that fits)</option><option value="50">1:50</option><option value="100">1:100</option><option value="200">1:200</option></select></label>
+    <span class="sheets" id="sheet-types"></span>
+    <span class="spacer"></span>
+    <button id="dl-md">Brief (.md)</button>
+    <button id="dl-dxf">DXF for CAD</button>
+    <button id="dl-csv">Costs (.csv)</button>
+    <button id="print" class="primary">Print / Save as PDF</button>
+  </header>
+  <p class="hint">Print at 100 % (“Actual size”, no “fit to page”) so the scale is exact. Choose “Save as PDF” as the printer to get a PDF.</p>
+  <main id="pages"></main>
+  <script type="module" src="print.js"></script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+name: Expert review (architects, engineers, installers)
+description: The planner gets a rule, a check, a price or a drawing convention wrong
+labels: [expert-review]
+body:
+  - type: dropdown
+    id: field
+    attributes:
+      label: Field
+      options:
+        - Architecture / layout
+        - Structural engineering
+        - Electrical (230/400 V)
+        - Water, drainage, gas
+        - Heating, ventilation, energy
+        - Costs and quantities
+        - Drawings, exports (PDF, DXF)
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: issue
+    attributes:
+      label: What is wrong or missing?
+      description: The rule or value the planner uses, what it should be, and why (standard, rule of thumb, experience). Say which country or standard you have in mind.
+    validations:
+      required: true
+  - type: input
+    id: background
+    attributes:
+      label: Your background (optional)
+      description: e.g. "structural engineer, 10 years, residential masonry, CZ"

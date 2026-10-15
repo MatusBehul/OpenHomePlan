@@ -1,0 +1,72 @@
+{
+  "name": "New house",
+  "description": "One empty floor on a 30 × 30 m plot. Split the room and add floors.",
+  "units": "m",
+  "assumptions": [
+    "Coordinates in metres, origin at the north-west corner of the house, x → east, y → south.",
+    "Street to the north, garden to the south."
+  ],
+  "targets": {
+    "livingArea": [
+      100,
+      200
+    ]
+  },
+  "rules": {
+    "stairs": {
+      "maxRiser": 0.19,
+      "minTread": 0.25,
+      "stepRule": 0.63,
+      "minWidth": 0.9,
+      "sideEntryReach": 0.3
+    },
+    "structure": {
+      "maxSlabSpan": 6.0,
+      "minUnsupported": 0.3
+    }
+  },
+  "wall": {
+    "exterior": 0.4,
+    "interior": 0.15,
+    "loadBearing": 0.25,
+    "exteriorMaterial": "Ceramic block 30 cm"
+  },
+  "roof": {
+    "type": "gable",
+    "pitch": 35,
+    "ridge": "x",
+    "overhang": 0.5
+  },
+  "floors": [
+    {
+      "id": "ground",
+      "name": "Ground floor",
+      "elevation": 0.15,
+      "height": 3.0,
+      "rooms": [
+        {
+          "id": "room",
+          "name": "Room",
+          "type": "living",
+          "x": 0,
+          "y": 0,
+          "w": 10,
+          "h": 8
+        }
+      ],
+      "openings": [],
+      "doors": []
+    }
+  ],
+  "site": [
+    {
+      "id": "plot",
+      "name": "Plot",
+      "type": "plot",
+      "x": -10,
+      "y": -10,
+      "w": 30,
+      "h": 30
+    }
+  ]
+}

@@ -1,0 +1,3004 @@
+{
+  "name": "Small manor with a tower",
+  "description": "A two-storey manor (about 190 m²) with a round tower holding a library and a reading nook, and a half-round dining bay off the kitchen. Shows round rooms, cone roofs and French facade details.",
+  "units": "m",
+  "assumptions": [
+    "Example house: coordinates in metres, origin at the north-west corner of the main block, x → east, y → south. Street to the north, garden to the south."
+  ],
+  "targets": {
+    "livingArea": [
+      170,
+      210
+    ]
+  },
+  "rules": {
+    "stairs": {
+      "maxRiser": 0.19,
+      "minTread": 0.25,
+      "stepRule": 0.63,
+      "minWidth": 0.9,
+      "sideEntryReach": 0.3
+    },
+    "structure": {
+      "maxSlabSpan": 6,
+      "minUnsupported": 0.3
+    }
+  },
+  "wall": {
+    "exterior": 0.45,
+    "interior": 0.15,
+    "loadBearing": 0.3,
+    "exteriorMaterial": "Ceramic block 30 cm + 15 cm insulation + lime render"
+  },
+  "facade": {
+    "render": "#efe8da",
+    "trim": "#f4efe4",
+    "shutters": "#7b8f96",
+    "plinthColor": "#cbc4b6",
+    "cornice": true,
+    "quoins": true,
+    "plinth": true
+  },
+  "roofs": [
+    {
+      "id": "main",
+      "name": "Hipped roof",
+      "on": "upper",
+      "x": 0,
+      "y": 0,
+      "w": 12,
+      "h": 7.5,
+      "type": "hip",
+      "pitch": 38,
+      "ridge": "x",
+      "overhang": 0.4,
+      "material": "slate",
+      "chimneys": [
+        {
+          "x": 2.5,
+          "y": 3,
+          "w": 0.6,
+          "h": 0.6
+        }
+      ]
+    }
+  ],
+  "floors": [
+    {
+      "id": "ground",
+      "name": "Ground floor",
+      "elevation": 0.3,
+      "height": 3,
+      "rooms": [
+        {
+          "id": "tower",
+          "name": "Library (tower)",
+          "type": "living",
+          "x": -4,
+          "y": 1,
+          "w": 4,
+          "h": 5,
+          "round": "W"
+        },
+        {
+          "id": "living",
+          "name": "Living room",
+          "type": "living",
+          "x": 0,
+          "y": 0,
+          "w": 4,
+          "h": 7.5
+        },
+        {
+          "id": "hall",
+          "name": "Entrance hall",
+          "type": "hall",
+          "x": 4,
+          "y": 0,
+          "w": 5,
+          "h": 2.5
+        },
+        {
+          "id": "study",
+          "name": "Study",
+          "type": "office",
+          "x": 9,
+          "y": 0,
+          "w": 3,
+          "h": 2.5
+        },
+        {
+          "id": "stairs",
+          "name": "Staircase",
+          "type": "stairs",
+          "x": 4,
+          "y": 2.5,
+          "w": 1.2,
+          "h": 5,
+          "up": "N"
+        },
+        {
+          "id": "wc",
+          "name": "WC",
+          "type": "wc",
+          "x": 5.2,
+          "y": 2.5,
+          "w": 1.4,
+          "h": 2
+        },
+        {
+          "id": "tech",
+          "name": "Technical & laundry",
+          "type": "technical",
+          "x": 5.2,
+          "y": 4.5,
+          "w": 1.4,
+          "h": 3
+        },
+        {
+          "id": "kitchen",
+          "name": "Kitchen",
+          "type": "living",
+          "x": 6.6,
+          "y": 2.5,
+          "w": 5.4,
+          "h": 5
+        },
+        {
+          "id": "bay",
+          "name": "Dining bay",
+          "type": "living",
+          "x": 8,
+          "y": 7.5,
+          "w": 4,
+          "h": 2,
+          "round": "S",
+          "roofPitch": 15
+        }
+      ],
+      "doors": [
+        {
+          "id": "d-living-tower",
+          "type": "opening",
+          "between": [
+            "living",
+            "tower"
+          ],
+          "offset": 1.2,
+          "width": 2.6,
+          "height": 2.3
+        },
+        {
+          "id": "d-hall-living",
+          "type": "opening",
+          "between": [
+            "hall",
+            "living"
+          ],
+          "offset": 0.5,
+          "width": 1.4,
+          "height": 2.3
+        },
+        {
+          "id": "d-living-stairs",
+          "type": "opening",
+          "between": [
+            "living",
+            "stairs"
+          ],
+          "offset": 4,
+          "width": 0.9,
+          "height": 2.3
+        },
+        {
+          "id": "d-hall-wc",
+          "type": "door",
+          "between": [
+            "hall",
+            "wc"
+          ],
+          "offset": 0.3,
+          "width": 0.8,
+          "height": 2.1,
+          "swing": "wc",
+          "hinge": "start"
+        },
+        {
+          "id": "d-hall-kitchen",
+          "type": "opening",
+          "between": [
+            "hall",
+            "kitchen"
+          ],
+          "offset": 1.6,
+          "width": 1,
+          "height": 2.3
+        },
+        {
+          "id": "d-hall-study",
+          "type": "door",
+          "between": [
+            "hall",
+            "study"
+          ],
+          "offset": 0.8,
+          "width": 0.8,
+          "height": 2.1,
+          "swing": "study",
+          "hinge": "end"
+        },
+        {
+          "id": "d-kitchen-tech",
+          "type": "door",
+          "between": [
+            "kitchen",
+            "tech"
+          ],
+          "offset": 1.8,
+          "width": 0.8,
+          "height": 2.1,
+          "swing": "tech",
+          "hinge": "start"
+        }
+      ],
+      "walls": [
+        {
+          "between": [
+            "bay",
+            "kitchen"
+          ],
+          "type": "none"
+        },
+        {
+          "between": [
+            "hall",
+            "living"
+          ],
+          "loadBearing": true,
+          "thickness": 0.3,
+          "material": "Ceramic block 30 cm"
+        },
+        {
+          "between": [
+            "living",
+            "stairs"
+          ],
+          "loadBearing": true,
+          "thickness": 0.3,
+          "material": "Ceramic block 30 cm"
+        },
+        {
+          "between": [
+            "hall",
+            "stairs"
+          ],
+          "loadBearing": true,
+          "thickness": 0.3,
+          "material": "Ceramic block 30 cm"
+        },
+        {
+          "between": [
+            "hall",
+            "wc"
+          ],
+          "loadBearing": true,
+          "thickness": 0.3,
+          "material": "Ceramic block 30 cm"
+        },
+        {
+          "between": [
+            "hall",
+            "kitchen"
+          ],
+          "loadBearing": true,
+          "thickness": 0.3,
+          "material": "Ceramic block 30 cm"
+        },
+        {
+          "between": [
+            "kitchen",
+            "study"
+          ],
+          "loadBearing": true,
+          "thickness": 0.3,
+          "material": "Ceramic block 30 cm"
+        },
+        {
+          "between": [
+            "living",
+            "tower"
+          ],
+          "loadBearing": true,
+          "thickness": 0.3,
+          "material": "Ceramic block 30 cm"
+        },
+        {
+          "between": [
+            "kitchen",
+            "tech"
+          ],
+          "loadBearing": true,
+          "thickness": 0.3,
+          "material": "Ceramic block 30 cm"
+        },
+        {
+          "between": [
+            "kitchen",
+            "wc"
+          ],
+          "loadBearing": true,
+          "thickness": 0.3,
+          "material": "Ceramic block 30 cm"
+        }
+      ],
+      "openings": [
+        {
+          "id": "w-tower-w",
+          "type": "window",
+          "facade": "W",
+          "y": 3,
+          "width": 1,
+          "sill": 0.6,
+          "height": 1.8,
+          "surround": true
+        },
+        {
+          "id": "w-tower-n",
+          "type": "window",
+          "facade": "N",
+          "x": -3.1,
+          "width": 0.8,
+          "sill": 0.6,
+          "height": 1.8
+        },
+        {
+          "id": "w-tower-s",
+          "type": "window",
+          "facade": "S",
+          "x": -3.1,
+          "width": 0.8,
+          "sill": 0.6,
+          "height": 1.8
+        },
+        {
+          "id": "w-living-n",
+          "type": "window",
+          "facade": "N",
+          "x": 1.4,
+          "width": 1.2,
+          "sill": 0.6,
+          "height": 1.8,
+          "surround": true,
+          "shutters": true
+        },
+        {
+          "id": "fd-living-s",
+          "type": "terrace-door",
+          "facade": "S",
+          "x": 1.4,
+          "width": 1.2,
+          "sill": 0,
+          "height": 2.4,
+          "hinge": "start",
+          "swing": "out",
+          "surround": true,
+          "shutters": true
+        },
+        {
+          "id": "entrance",
+          "type": "door",
+          "facade": "N",
+          "x": 6,
+          "width": 1.1,
+          "sill": 0,
+          "height": 2.4,
+          "surround": true
+        },
+        {
+          "id": "w-hall-n",
+          "type": "window",
+          "facade": "N",
+          "x": 4.6,
+          "width": 0.8,
+          "sill": 0.9,
+          "height": 1.5,
+          "surround": true
+        },
+        {
+          "id": "w-study-n",
+          "type": "window",
+          "facade": "N",
+          "x": 9.9,
+          "width": 1.2,
+          "sill": 0.6,
+          "height": 1.8,
+          "surround": true,
+          "shutters": true
+        },
+        {
+          "id": "w-kitchen-e",
+          "type": "window",
+          "facade": "E",
+          "y": 3.5,
+          "width": 1.2,
+          "sill": 1,
+          "height": 1.4,
+          "surround": true,
+          "shutters": true
+        },
+        {
+          "id": "w-tech-s",
+          "type": "window",
+          "facade": "S",
+          "x": 5.5,
+          "width": 0.8,
+          "sill": 1.4,
+          "height": 0.8
+        },
+        {
+          "id": "w-kitchen-s",
+          "type": "window",
+          "facade": "S",
+          "x": 6.8,
+          "width": 1,
+          "sill": 1,
+          "height": 1.4
+        },
+        {
+          "id": "w-bay-1",
+          "type": "window",
+          "facade": "S",
+          "x": 8.35,
+          "width": 0.8,
+          "sill": 0.5,
+          "height": 1.9
+        },
+        {
+          "id": "fd-bay",
+          "type": "terrace-door",
+          "facade": "S",
+          "x": 9.5,
+          "width": 1,
+          "sill": 0,
+          "height": 2.4,
+          "hinge": "start",
+          "swing": "out"
+        },
+        {
+          "id": "w-bay-2",
+          "type": "window",
+          "facade": "S",
+          "x": 10.85,
+          "width": 0.8,
+          "sill": 0.5,
+          "height": 1.9
+        }
+      ],
+      "items": [
+        {
+          "id": "sofa-3",
+          "type": "sofa-3",
+          "x": 0.4,
+          "y": 2.6,
+          "w": 2.2,
+          "d": 0.95,
+          "h": 0.85,
+          "rot": 270
+        },
+        {
+          "id": "coffee-table",
+          "type": "coffee-table",
+          "x": 1.6,
+          "y": 3.1,
+          "w": 1.2,
+          "d": 0.6,
+          "h": 0.4,
+          "rot": 90
+        },
+        {
+          "id": "armchair",
+          "type": "armchair",
+          "x": 2.6,
+          "y": 1.6,
+          "w": 0.85,
+          "d": 0.85,
+          "h": 0.85,
+          "rot": 0
+        },
+        {
+          "id": "tv-unit",
+          "type": "tv-unit",
+          "x": 3.4,
+          "y": 2.9,
+          "w": 1.8,
+          "d": 0.45,
+          "h": 0.5,
+          "rot": 90
+        },
+        {
+          "id": "bookshelf",
+          "type": "bookshelf",
+          "name": "Bookshelf",
+          "x": -1.3,
+          "y": 1.3,
+          "w": 1,
+          "d": 0.35,
+          "h": 2,
+          "rot": 0
+        },
+        {
+          "id": "armchair-2",
+          "type": "armchair",
+          "name": "Reading chair",
+          "x": -2.6,
+          "y": 3,
+          "w": 0.85,
+          "d": 0.85,
+          "h": 0.85,
+          "rot": 90
+        },
+        {
+          "id": "fridge",
+          "type": "fridge",
+          "x": 6.73,
+          "y": 2.6,
+          "w": 0.6,
+          "d": 0.65,
+          "h": 1.9,
+          "rot": 0
+        },
+        {
+          "id": "kitchen-tall",
+          "type": "kitchen-tall",
+          "name": "Oven column",
+          "x": 7.33,
+          "y": 2.6,
+          "w": 0.6,
+          "d": 0.6,
+          "h": 2.2,
+          "rot": 0
+        },
+        {
+          "id": "kitchen-base",
+          "type": "kitchen-base",
+          "x": 7.93,
+          "y": 2.6,
+          "w": 1.2,
+          "d": 0.6,
+          "h": 0.9,
+          "rot": 0
+        },
+        {
+          "id": "sink-kitchen",
+          "type": "sink-kitchen",
+          "x": 9.13,
+          "y": 2.6,
+          "w": 0.8,
+          "d": 0.6,
+          "h": 0.9,
+          "rot": 0
+        },
+        {
+          "id": "dishwasher",
+          "type": "dishwasher",
+          "x": 9.93,
+          "y": 2.6,
+          "w": 0.6,
+          "d": 0.6,
+          "h": 0.85,
+          "rot": 0,
+          "circuit": "A1"
+        },
+        {
+          "id": "kitchen-base-2",
+          "type": "kitchen-base",
+          "x": 10.53,
+          "y": 2.6,
+          "w": 1.24,
+          "d": 0.6,
+          "h": 0.9,
+          "rot": 0
+        },
+        {
+          "id": "kitchen-island",
+          "type": "kitchen-island",
+          "x": 8.4,
+          "y": 4.2,
+          "w": 2,
+          "d": 0.9,
+          "h": 0.9,
+          "rot": 0
+        },
+        {
+          "id": "hob",
+          "type": "hob",
+          "x": 9.1,
+          "y": 4.2,
+          "w": 0.6,
+          "d": 0.9,
+          "h": 0.9,
+          "rot": 0,
+          "circuit": "A2"
+        },
+        {
+          "id": "dining-4",
+          "type": "dining-4",
+          "name": "Dining table",
+          "x": 9,
+          "y": 7.7,
+          "w": 1.2,
+          "d": 2,
+          "h": 0.75,
+          "rot": 90
+        },
+        {
+          "id": "wardrobe",
+          "type": "wardrobe",
+          "name": "Coat cupboard",
+          "x": 4.1,
+          "y": 0.25,
+          "w": 1.3,
+          "d": 0.6,
+          "h": 2.4,
+          "rot": 0
+        },
+        {
+          "id": "desk",
+          "type": "desk",
+          "x": 9.6,
+          "y": 1.6,
+          "w": 1.4,
+          "d": 0.7,
+          "h": 0.75,
+          "rot": 180
+        },
+        {
+          "id": "bookshelf-2",
+          "type": "bookshelf",
+          "x": 11.4,
+          "y": 0.3,
+          "w": 1,
+          "d": 0.35,
+          "h": 2,
+          "rot": 90
+        },
+        {
+          "id": "wc-2",
+          "type": "wc",
+          "x": 5.875,
+          "y": 3,
+          "w": 0.4,
+          "d": 0.65,
+          "h": 0.4,
+          "rot": 90
+        },
+        {
+          "id": "washbasin",
+          "type": "washbasin",
+          "x": 5.3,
+          "y": 3.4,
+          "w": 0.6,
+          "d": 0.45,
+          "h": 0.85,
+          "rot": 270
+        },
+        {
+          "id": "heat-pump",
+          "type": "heat-pump",
+          "x": 5.3,
+          "y": 4.65,
+          "w": 0.6,
+          "d": 0.6,
+          "h": 1.8,
+          "rot": 270,
+          "circuit": "A3"
+        },
+        {
+          "id": "water-heater",
+          "type": "water-heater",
+          "x": 5.3,
+          "y": 5.3,
+          "w": 0.6,
+          "d": 0.6,
+          "h": 1.8,
+          "rot": 270,
+          "circuit": "A4"
+        },
+        {
+          "id": "washer",
+          "type": "washer",
+          "x": 5.3,
+          "y": 6.1,
+          "w": 0.6,
+          "d": 0.6,
+          "h": 0.85,
+          "rot": 270,
+          "circuit": "A5"
+        },
+        {
+          "id": "heat-pump-outdoor",
+          "type": "heat-pump-outdoor",
+          "x": 12.25,
+          "y": 0.5,
+          "w": 1,
+          "d": 0.4,
+          "h": 0.9,
+          "rot": 90
+        }
+      ],
+      "points": [
+        {
+          "id": "light",
+          "kind": "light",
+          "x": -2,
+          "y": 3.5,
+          "h": null,
+          "auto": true,
+          "room": "tower",
+          "circuit": "L1"
+        },
+        {
+          "id": "switch",
+          "kind": "switch",
+          "x": -0.27,
+          "y": 5,
+          "h": 1.1,
+          "auto": true,
+          "room": "tower"
+        },
+        {
+          "id": "socket",
+          "kind": "socket",
+          "x": -2.87,
+          "y": 1.27,
+          "h": 0.3,
+          "auto": true,
+          "room": "tower",
+          "circuit": "S5"
+        },
+        {
+          "id": "socket-2",
+          "kind": "socket",
+          "x": -0.62,
+          "y": 1.27,
+          "h": 0.3,
+          "auto": true,
+          "room": "tower",
+          "circuit": "S5"
+        },
+        {
+          "id": "socket-3",
+          "kind": "socket",
+          "x": -0.27,
+          "y": 5.23,
+          "h": 0.3,
+          "auto": true,
+          "room": "tower",
+          "circuit": "S5"
+        },
+        {
+          "id": "socket-4",
+          "kind": "socket",
+          "x": -0.27,
+          "y": 5.07,
+          "h": 0.3,
+          "auto": true,
+          "room": "tower",
+          "circuit": "S5"
+        },
+        {
+          "id": "socket-5",
+          "kind": "socket",
+          "x": -1.12,
+          "y": 5.73,
+          "h": 0.3,
+          "auto": true,
+          "room": "tower",
+          "circuit": "S5"
+        },
+        {
+          "id": "socket-6",
+          "kind": "socket",
+          "x": -3.37,
+          "y": 5.73,
+          "h": 0.3,
+          "auto": true,
+          "room": "tower",
+          "circuit": "S5"
+        },
+        {
+          "id": "socket-7",
+          "kind": "socket",
+          "x": -3.87,
+          "y": 4.38,
+          "h": 0.3,
+          "auto": true,
+          "room": "tower",
+          "circuit": "S5"
+        },
+        {
+          "id": "socket-8",
+          "kind": "socket",
+          "x": -3.87,
+          "y": 2.13,
+          "h": 0.3,
+          "auto": true,
+          "room": "tower",
+          "circuit": "S5"
+        },
+        {
+          "id": "light-2",
+          "kind": "light",
+          "x": 2,
+          "y": 1.88,
+          "h": null,
+          "auto": true,
+          "room": "living",
+          "circuit": "L1"
+        },
+        {
+          "id": "light-3",
+          "kind": "light",
+          "x": 2,
+          "y": 5.63,
+          "h": null,
+          "auto": true,
+          "room": "living",
+          "circuit": "L1"
+        },
+        {
+          "id": "switch-2",
+          "kind": "switch",
+          "x": 0.28,
+          "y": 5,
+          "h": 1.1,
+          "auto": true,
+          "room": "living"
+        },
+        {
+          "id": "switch-3",
+          "kind": "switch",
+          "x": 3.88,
+          "y": 2.1,
+          "h": 1.1,
+          "auto": true,
+          "room": "living"
+        },
+        {
+          "id": "switch-4",
+          "kind": "switch",
+          "x": 3.88,
+          "y": 7.23,
+          "h": 1.1,
+          "auto": true,
+          "room": "living"
+        },
+        {
+          "id": "socket-9",
+          "kind": "socket",
+          "x": 1.44,
+          "y": 0.28,
+          "h": 0.3,
+          "auto": true,
+          "room": "living",
+          "circuit": "S3"
+        },
+        {
+          "id": "socket-10",
+          "kind": "socket",
+          "x": 3.88,
+          "y": 2.31,
+          "h": 0.3,
+          "auto": true,
+          "room": "living",
+          "circuit": "S3"
+        },
+        {
+          "id": "socket-11",
+          "kind": "socket",
+          "x": 3.88,
+          "y": 3.19,
+          "h": 0.3,
+          "auto": true,
+          "room": "living",
+          "circuit": "S3"
+        },
+        {
+          "id": "socket-12",
+          "kind": "socket",
+          "x": 3.88,
+          "y": 6.06,
+          "h": 0.3,
+          "auto": true,
+          "room": "living",
+          "circuit": "S3"
+        },
+        {
+          "id": "socket-13",
+          "kind": "socket",
+          "x": 0.96,
+          "y": 7.23,
+          "h": 0.3,
+          "auto": true,
+          "room": "living",
+          "circuit": "S3"
+        },
+        {
+          "id": "socket-14",
+          "kind": "socket",
+          "x": 0.28,
+          "y": 7.19,
+          "h": 0.3,
+          "auto": true,
+          "room": "living",
+          "circuit": "S3"
+        },
+        {
+          "id": "socket-15",
+          "kind": "socket",
+          "x": 0.28,
+          "y": 1.91,
+          "h": 0.3,
+          "auto": true,
+          "room": "living",
+          "circuit": "S3"
+        },
+        {
+          "id": "socket-16",
+          "kind": "socket",
+          "x": 0.28,
+          "y": 1.44,
+          "h": 0.3,
+          "auto": true,
+          "room": "living",
+          "circuit": "S3"
+        },
+        {
+          "id": "light-4",
+          "kind": "light",
+          "x": 6.5,
+          "y": 1.25,
+          "h": null,
+          "auto": true,
+          "room": "hall",
+          "circuit": "L1"
+        },
+        {
+          "id": "switch-5",
+          "kind": "switch",
+          "x": 4.13,
+          "y": 2.1,
+          "h": 1.1,
+          "auto": true,
+          "room": "hall"
+        },
+        {
+          "id": "switch-6",
+          "kind": "switch",
+          "x": 6.5,
+          "y": 2.38,
+          "h": 1.1,
+          "auto": true,
+          "room": "hall"
+        },
+        {
+          "id": "switch-7",
+          "kind": "switch",
+          "x": 8.88,
+          "y": 2.38,
+          "h": 1.1,
+          "auto": true,
+          "room": "hall"
+        },
+        {
+          "id": "switch-8",
+          "kind": "switch",
+          "x": 8.88,
+          "y": 0.6,
+          "h": 1.1,
+          "auto": true,
+          "room": "hall"
+        },
+        {
+          "id": "socket-17",
+          "kind": "socket",
+          "x": 7.75,
+          "y": 0.28,
+          "h": 0.3,
+          "auto": true,
+          "room": "hall",
+          "circuit": "S2"
+        },
+        {
+          "id": "socket-18",
+          "kind": "socket",
+          "x": 5.25,
+          "y": 2.38,
+          "h": 0.3,
+          "auto": true,
+          "room": "hall",
+          "circuit": "S2"
+        },
+        {
+          "id": "light-5",
+          "kind": "light",
+          "x": 10.5,
+          "y": 1.25,
+          "h": null,
+          "auto": true,
+          "room": "study",
+          "circuit": "L1"
+        },
+        {
+          "id": "switch-9",
+          "kind": "switch",
+          "x": 9.13,
+          "y": 0.6,
+          "h": 1.1,
+          "auto": true,
+          "room": "study"
+        },
+        {
+          "id": "socket-19",
+          "kind": "socket",
+          "x": 9.92,
+          "y": 0.28,
+          "h": 0.3,
+          "auto": true,
+          "room": "study",
+          "circuit": "S4"
+        },
+        {
+          "id": "socket-20",
+          "kind": "socket",
+          "x": 11.73,
+          "y": 0.35,
+          "h": 0.3,
+          "auto": true,
+          "room": "study",
+          "circuit": "S4"
+        },
+        {
+          "id": "socket-21",
+          "kind": "socket",
+          "x": 11.73,
+          "y": 1.58,
+          "h": 0.3,
+          "auto": true,
+          "room": "study",
+          "circuit": "S4"
+        },
+        {
+          "id": "socket-22",
+          "kind": "socket",
+          "x": 11.08,
+          "y": 2.38,
+          "h": 0.3,
+          "auto": true,
+          "room": "study",
+          "circuit": "S4"
+        },
+        {
+          "id": "socket-23",
+          "kind": "socket",
+          "x": 9.13,
+          "y": 2.15,
+          "h": 0.3,
+          "auto": true,
+          "room": "study",
+          "circuit": "S4"
+        },
+        {
+          "id": "socket-24",
+          "kind": "socket",
+          "x": 9.13,
+          "y": 0.52,
+          "h": 0.3,
+          "auto": true,
+          "room": "study",
+          "circuit": "S4"
+        },
+        {
+          "id": "light-6",
+          "kind": "light",
+          "x": 4.6,
+          "y": 5,
+          "h": null,
+          "auto": true,
+          "room": "stairs",
+          "circuit": "L1"
+        },
+        {
+          "id": "switch-10",
+          "kind": "switch",
+          "x": 4.13,
+          "y": 7.23,
+          "h": 1.1,
+          "auto": true,
+          "room": "stairs"
+        },
+        {
+          "id": "light-7",
+          "kind": "light",
+          "x": 5.9,
+          "y": 3.5,
+          "h": null,
+          "auto": true,
+          "room": "wc",
+          "circuit": "L1"
+        },
+        {
+          "id": "switch-11",
+          "kind": "switch",
+          "x": 6.48,
+          "y": 2.63,
+          "h": 1.1,
+          "auto": true,
+          "room": "wc"
+        },
+        {
+          "id": "light-8",
+          "kind": "light",
+          "x": 5.9,
+          "y": 6,
+          "h": null,
+          "auto": true,
+          "room": "tech",
+          "circuit": "L1"
+        },
+        {
+          "id": "switch-12",
+          "kind": "switch",
+          "x": 6.48,
+          "y": 7.23,
+          "h": 1.1,
+          "auto": true,
+          "room": "tech"
+        },
+        {
+          "id": "socket-25",
+          "kind": "socket",
+          "x": 6.48,
+          "y": 5.3,
+          "h": 0.3,
+          "auto": true,
+          "room": "tech",
+          "circuit": "S5"
+        },
+        {
+          "id": "socket-26",
+          "kind": "socket",
+          "x": 5.33,
+          "y": 6.7,
+          "h": 0.3,
+          "auto": true,
+          "room": "tech",
+          "circuit": "S5"
+        },
+        {
+          "id": "light-9",
+          "kind": "light",
+          "x": 7.95,
+          "y": 5,
+          "h": null,
+          "auto": true,
+          "room": "kitchen",
+          "circuit": "L1"
+        },
+        {
+          "id": "light-10",
+          "kind": "light",
+          "x": 10.65,
+          "y": 5,
+          "h": null,
+          "auto": true,
+          "room": "kitchen",
+          "circuit": "L1"
+        },
+        {
+          "id": "switch-13",
+          "kind": "switch",
+          "x": 9.2,
+          "y": 2.63,
+          "h": 1.1,
+          "auto": true,
+          "room": "kitchen"
+        },
+        {
+          "id": "switch-14",
+          "kind": "switch",
+          "x": 6.73,
+          "y": 7.23,
+          "h": 1.1,
+          "auto": true,
+          "room": "kitchen"
+        },
+        {
+          "id": "socket-27",
+          "kind": "socket",
+          "x": 9.3,
+          "y": 2.63,
+          "h": 0.3,
+          "auto": true,
+          "room": "kitchen",
+          "circuit": "S2"
+        },
+        {
+          "id": "socket-28",
+          "kind": "socket",
+          "x": 10.5,
+          "y": 2.63,
+          "h": 0.3,
+          "auto": true,
+          "room": "kitchen",
+          "circuit": "S2"
+        },
+        {
+          "id": "socket-29",
+          "kind": "socket",
+          "x": 11.73,
+          "y": 3.6,
+          "h": 0.3,
+          "auto": true,
+          "room": "kitchen",
+          "circuit": "S2"
+        },
+        {
+          "id": "socket-30",
+          "kind": "socket",
+          "x": 11.73,
+          "y": 6.2,
+          "h": 0.3,
+          "auto": true,
+          "room": "kitchen",
+          "circuit": "S2"
+        },
+        {
+          "id": "socket-31",
+          "kind": "socket",
+          "x": 10.7,
+          "y": 7.23,
+          "h": 0.3,
+          "auto": true,
+          "room": "kitchen",
+          "circuit": "S2"
+        },
+        {
+          "id": "socket-32",
+          "kind": "socket",
+          "x": 8.1,
+          "y": 7.23,
+          "h": 0.3,
+          "auto": true,
+          "room": "kitchen",
+          "circuit": "S2"
+        },
+        {
+          "id": "socket-33",
+          "kind": "socket",
+          "x": 6.73,
+          "y": 6,
+          "h": 0.3,
+          "auto": true,
+          "room": "kitchen",
+          "circuit": "S2"
+        },
+        {
+          "id": "socket-34",
+          "kind": "socket",
+          "x": 6.73,
+          "y": 3.8,
+          "h": 0.3,
+          "auto": true,
+          "room": "kitchen",
+          "circuit": "S2"
+        },
+        {
+          "id": "light-11",
+          "kind": "light",
+          "x": 10,
+          "y": 8.5,
+          "h": null,
+          "auto": true,
+          "room": "bay",
+          "circuit": "L1"
+        },
+        {
+          "id": "socket-35",
+          "kind": "socket",
+          "x": 8.75,
+          "y": 7.78,
+          "h": 0.3,
+          "auto": true,
+          "room": "bay",
+          "circuit": "S1"
+        },
+        {
+          "id": "socket-36",
+          "kind": "socket",
+          "x": 10.25,
+          "y": 7.78,
+          "h": 0.3,
+          "auto": true,
+          "room": "bay",
+          "circuit": "S1"
+        },
+        {
+          "id": "socket-37",
+          "kind": "socket",
+          "x": 11.73,
+          "y": 7.85,
+          "h": 0.3,
+          "auto": true,
+          "room": "bay",
+          "circuit": "S1"
+        },
+        {
+          "id": "socket-38",
+          "kind": "socket",
+          "x": 11.73,
+          "y": 8.75,
+          "h": 0.3,
+          "auto": true,
+          "room": "bay",
+          "circuit": "S1"
+        },
+        {
+          "id": "socket-39",
+          "kind": "socket",
+          "x": 11.25,
+          "y": 9.38,
+          "h": 0.3,
+          "auto": true,
+          "room": "bay",
+          "circuit": "S1"
+        },
+        {
+          "id": "socket-40",
+          "kind": "socket",
+          "x": 9.15,
+          "y": 9.38,
+          "h": 0.3,
+          "auto": true,
+          "room": "bay",
+          "circuit": "S1"
+        },
+        {
+          "id": "socket-41",
+          "kind": "socket",
+          "x": 8.13,
+          "y": 9.15,
+          "h": 0.3,
+          "auto": true,
+          "room": "bay",
+          "circuit": "S1"
+        },
+        {
+          "id": "socket-42",
+          "kind": "socket",
+          "x": 8.13,
+          "y": 8.25,
+          "h": 0.3,
+          "auto": true,
+          "room": "bay",
+          "circuit": "S1"
+        },
+        {
+          "id": "socket-43",
+          "kind": "socket",
+          "x": 3.85,
+          "y": 3.8,
+          "h": 0.3,
+          "auto": true,
+          "for": "tv-unit",
+          "room": "living",
+          "circuit": "S3"
+        },
+        {
+          "id": "data",
+          "kind": "data",
+          "x": 3.85,
+          "y": 4.05,
+          "h": 0.3,
+          "auto": true,
+          "for": "tv-unit",
+          "room": "living"
+        },
+        {
+          "id": "socket-44",
+          "kind": "socket",
+          "x": 7.03,
+          "y": 2.6,
+          "h": 0.3,
+          "auto": true,
+          "for": "fridge",
+          "room": "kitchen",
+          "circuit": "S3"
+        },
+        {
+          "id": "socket-counter",
+          "kind": "socket-counter",
+          "x": 8.53,
+          "y": 2.6,
+          "h": 1.1,
+          "auto": true,
+          "for": "kitchen-base",
+          "room": "kitchen",
+          "circuit": "K1"
+        },
+        {
+          "id": "water-cold",
+          "kind": "water-cold",
+          "x": 9.43,
+          "y": 2.6,
+          "h": 0.5,
+          "auto": true,
+          "for": "sink-kitchen",
+          "room": "kitchen"
+        },
+        {
+          "id": "water-hot",
+          "kind": "water-hot",
+          "x": 9.63,
+          "y": 2.6,
+          "h": 0.5,
+          "auto": true,
+          "for": "sink-kitchen",
+          "room": "kitchen"
+        },
+        {
+          "id": "drain",
+          "kind": "drain",
+          "x": 9.53,
+          "y": 2.75,
+          "h": 0.1,
+          "auto": true,
+          "for": "sink-kitchen",
+          "room": "kitchen",
+          "size": 50
+        },
+        {
+          "id": "outlet",
+          "kind": "outlet",
+          "x": 10.23,
+          "y": 2.6,
+          "h": 0.3,
+          "auto": true,
+          "for": "dishwasher",
+          "room": "kitchen",
+          "circuit": "A1"
+        },
+        {
+          "id": "water-cold-2",
+          "kind": "water-cold",
+          "x": 10.13,
+          "y": 2.6,
+          "h": 0.5,
+          "auto": true,
+          "for": "dishwasher",
+          "room": "kitchen"
+        },
+        {
+          "id": "drain-2",
+          "kind": "drain",
+          "x": 10.23,
+          "y": 2.75,
+          "h": 0.1,
+          "auto": true,
+          "for": "dishwasher",
+          "room": "kitchen",
+          "size": 40
+        },
+        {
+          "id": "socket-counter-2",
+          "kind": "socket-counter",
+          "x": 11.15,
+          "y": 2.6,
+          "h": 1.1,
+          "auto": true,
+          "for": "kitchen-base-2",
+          "room": "kitchen",
+          "circuit": "K1"
+        },
+        {
+          "id": "socket-400",
+          "kind": "socket-400",
+          "x": 9.4,
+          "y": 4.2,
+          "h": 0.6,
+          "auto": true,
+          "for": "hob",
+          "room": "kitchen",
+          "circuit": "A2"
+        },
+        {
+          "id": "socket-45",
+          "kind": "socket",
+          "x": 10.3,
+          "y": 2.3,
+          "h": 0.3,
+          "auto": true,
+          "for": "desk",
+          "room": "study",
+          "circuit": "S4"
+        },
+        {
+          "id": "data-2",
+          "kind": "data",
+          "x": 10.05,
+          "y": 2.3,
+          "h": 0.3,
+          "auto": true,
+          "for": "desk",
+          "room": "study"
+        },
+        {
+          "id": "water-cold-3",
+          "kind": "water-cold",
+          "x": 6.53,
+          "y": 3.1,
+          "h": 0.5,
+          "auto": true,
+          "for": "wc-2",
+          "room": "wc"
+        },
+        {
+          "id": "drain-3",
+          "kind": "drain",
+          "x": 6.38,
+          "y": 3.2,
+          "h": 0.1,
+          "auto": true,
+          "for": "wc-2",
+          "room": "wc",
+          "size": 110
+        },
+        {
+          "id": "water-cold-4",
+          "kind": "water-cold",
+          "x": 5.3,
+          "y": 3.8,
+          "h": 0.5,
+          "auto": true,
+          "for": "washbasin",
+          "room": "wc"
+        },
+        {
+          "id": "water-hot-2",
+          "kind": "water-hot",
+          "x": 5.3,
+          "y": 3.6,
+          "h": 0.5,
+          "auto": true,
+          "for": "washbasin",
+          "room": "wc"
+        },
+        {
+          "id": "drain-4",
+          "kind": "drain",
+          "x": 5.45,
+          "y": 3.7,
+          "h": 0.1,
+          "auto": true,
+          "for": "washbasin",
+          "room": "wc",
+          "size": 40
+        },
+        {
+          "id": "socket-400-2",
+          "kind": "socket-400",
+          "x": 5.3,
+          "y": 4.95,
+          "h": 0.6,
+          "auto": true,
+          "for": "heat-pump",
+          "room": "tech",
+          "circuit": "A3"
+        },
+        {
+          "id": "water-cold-5",
+          "kind": "water-cold",
+          "x": 5.3,
+          "y": 5.05,
+          "h": 0.5,
+          "auto": true,
+          "for": "heat-pump",
+          "room": "tech"
+        },
+        {
+          "id": "water-hot-3",
+          "kind": "water-hot",
+          "x": 5.3,
+          "y": 4.85,
+          "h": 0.5,
+          "auto": true,
+          "for": "heat-pump",
+          "room": "tech"
+        },
+        {
+          "id": "drain-5",
+          "kind": "drain",
+          "x": 5.45,
+          "y": 4.95,
+          "h": 0.1,
+          "auto": true,
+          "for": "heat-pump",
+          "room": "tech",
+          "size": 32
+        },
+        {
+          "id": "outlet-2",
+          "kind": "outlet",
+          "x": 5.3,
+          "y": 5.6,
+          "h": 0.3,
+          "auto": true,
+          "for": "water-heater",
+          "room": "tech",
+          "circuit": "A4"
+        },
+        {
+          "id": "water-cold-6",
+          "kind": "water-cold",
+          "x": 5.3,
+          "y": 5.7,
+          "h": 0.5,
+          "auto": true,
+          "for": "water-heater",
+          "room": "tech"
+        },
+        {
+          "id": "water-hot-4",
+          "kind": "water-hot",
+          "x": 5.3,
+          "y": 5.5,
+          "h": 0.5,
+          "auto": true,
+          "for": "water-heater",
+          "room": "tech"
+        },
+        {
+          "id": "outlet-3",
+          "kind": "outlet",
+          "x": 5.3,
+          "y": 6.4,
+          "h": 0.3,
+          "auto": true,
+          "for": "washer",
+          "room": "tech",
+          "circuit": "A5"
+        },
+        {
+          "id": "water-cold-7",
+          "kind": "water-cold",
+          "x": 5.3,
+          "y": 6.5,
+          "h": 0.5,
+          "auto": true,
+          "for": "washer",
+          "room": "tech"
+        },
+        {
+          "id": "drain-6",
+          "kind": "drain",
+          "x": 5.45,
+          "y": 6.4,
+          "h": 0.1,
+          "auto": true,
+          "for": "washer",
+          "room": "tech",
+          "size": 40
+        },
+        {
+          "id": "board",
+          "kind": "board",
+          "x": 5.8,
+          "y": 4.63,
+          "h": 1.5,
+          "auto": true,
+          "room": "tech"
+        },
+        {
+          "id": "meter-water",
+          "kind": "meter-water",
+          "x": 5.33,
+          "y": 6.9,
+          "h": 0.5,
+          "auto": true,
+          "room": "tech"
+        }
+      ]
+    },
+    {
+      "id": "upper",
+      "name": "Upper floor",
+      "elevation": 3.3,
+      "height": 2.8,
+      "rooms": [
+        {
+          "id": "tower2",
+          "name": "Reading nook (tower)",
+          "type": "bedroom",
+          "x": -4,
+          "y": 1,
+          "w": 4,
+          "h": 5,
+          "round": "W",
+          "roofPitch": 60
+        },
+        {
+          "id": "master",
+          "name": "Master bedroom",
+          "type": "bedroom",
+          "x": 0,
+          "y": 0,
+          "w": 4,
+          "h": 4.5
+        },
+        {
+          "id": "bath",
+          "name": "Bathroom",
+          "type": "bathroom",
+          "x": 0,
+          "y": 4.5,
+          "w": 4,
+          "h": 3
+        },
+        {
+          "id": "landing",
+          "name": "Landing",
+          "type": "hall",
+          "x": 4,
+          "y": 0,
+          "w": 5,
+          "h": 2.5
+        },
+        {
+          "id": "shower",
+          "name": "Shower room",
+          "type": "bathroom",
+          "x": 9,
+          "y": 0,
+          "w": 3,
+          "h": 2.5
+        },
+        {
+          "id": "stair-void",
+          "name": "Staircase (void)",
+          "type": "void",
+          "x": 4,
+          "y": 2.5,
+          "w": 1.2,
+          "h": 5
+        },
+        {
+          "id": "bed2",
+          "name": "Bedroom 2",
+          "type": "bedroom",
+          "x": 5.2,
+          "y": 2.5,
+          "w": 2.8,
+          "h": 5
+        },
+        {
+          "id": "bed3",
+          "name": "Bedroom 3",
+          "type": "bedroom",
+          "x": 8,
+          "y": 2.5,
+          "w": 4,
+          "h": 5
+        }
+      ],
+      "doors": [
+        {
+          "id": "d-land-void",
+          "type": "opening",
+          "between": [
+            "landing",
+            "stair-void"
+          ],
+          "offset": 0.1,
+          "width": 1,
+          "height": 2.3
+        },
+        {
+          "id": "d-land-master",
+          "type": "door",
+          "between": [
+            "landing",
+            "master"
+          ],
+          "offset": 0.8,
+          "width": 0.9,
+          "height": 2.1,
+          "swing": "master",
+          "hinge": "end"
+        },
+        {
+          "id": "d-master-tower",
+          "type": "opening",
+          "between": [
+            "master",
+            "tower2"
+          ],
+          "offset": 1.2,
+          "width": 2,
+          "height": 2.3
+        },
+        {
+          "id": "d-master-bath",
+          "type": "door",
+          "between": [
+            "bath",
+            "master"
+          ],
+          "offset": 2.6,
+          "width": 0.8,
+          "height": 2.1,
+          "swing": "bath",
+          "hinge": "start"
+        },
+        {
+          "id": "d-land-bed2",
+          "type": "door",
+          "between": [
+            "bed2",
+            "landing"
+          ],
+          "offset": 0.2,
+          "width": 0.9,
+          "height": 2.1,
+          "swing": "bed2",
+          "hinge": "start"
+        },
+        {
+          "id": "d-land-bed3",
+          "type": "door",
+          "between": [
+            "bed3",
+            "landing"
+          ],
+          "offset": 0.05,
+          "width": 0.9,
+          "height": 2.1,
+          "swing": "bed3",
+          "hinge": "start"
+        },
+        {
+          "id": "d-land-shower",
+          "type": "door",
+          "between": [
+            "landing",
+            "shower"
+          ],
+          "offset": 0.8,
+          "width": 0.8,
+          "height": 2.1,
+          "swing": "shower",
+          "hinge": "start"
+        }
+      ],
+      "walls": [],
+      "openings": [
+        {
+          "id": "u-tower-w",
+          "type": "window",
+          "facade": "W",
+          "y": 3,
+          "width": 1,
+          "sill": 0.8,
+          "height": 1.5,
+          "surround": true
+        },
+        {
+          "id": "u-master-n",
+          "type": "window",
+          "facade": "N",
+          "x": 1.4,
+          "width": 1.2,
+          "sill": 0.5,
+          "height": 1.8,
+          "surround": true,
+          "shutters": true,
+          "juliet": true
+        },
+        {
+          "id": "u-bath-s",
+          "type": "window",
+          "facade": "S",
+          "x": 1.6,
+          "width": 0.9,
+          "sill": 1.2,
+          "height": 1
+        },
+        {
+          "id": "u-land-n",
+          "type": "window",
+          "facade": "N",
+          "x": 6,
+          "width": 1.1,
+          "sill": 0.5,
+          "height": 1.8,
+          "surround": true,
+          "juliet": true
+        },
+        {
+          "id": "u-shower-n",
+          "type": "window",
+          "facade": "N",
+          "x": 10.2,
+          "width": 0.7,
+          "sill": 1.4,
+          "height": 0.9
+        },
+        {
+          "id": "u-bed2-s",
+          "type": "window",
+          "facade": "S",
+          "x": 6.1,
+          "width": 1,
+          "sill": 0.5,
+          "height": 1.8,
+          "surround": true,
+          "shutters": true,
+          "juliet": true
+        },
+        {
+          "id": "u-bed3-s",
+          "type": "window",
+          "facade": "S",
+          "x": 9.4,
+          "width": 1.2,
+          "sill": 0.9,
+          "height": 1.4,
+          "surround": true,
+          "shutters": true
+        },
+        {
+          "id": "u-bed3-e",
+          "type": "window",
+          "facade": "E",
+          "y": 4,
+          "width": 1,
+          "sill": 0.9,
+          "height": 1.4,
+          "surround": true,
+          "shutters": true
+        }
+      ],
+      "items": [
+        {
+          "id": "bed-double",
+          "type": "bed-double",
+          "x": 0.25,
+          "y": 1.3,
+          "w": 1.8,
+          "d": 2.1,
+          "h": 0.5,
+          "rot": 270
+        },
+        {
+          "id": "nightstand",
+          "type": "nightstand",
+          "x": 0.25,
+          "y": 0.85,
+          "w": 0.45,
+          "d": 0.4,
+          "h": 0.5,
+          "rot": 270
+        },
+        {
+          "id": "nightstand-2",
+          "type": "nightstand",
+          "x": 0.25,
+          "y": 3.1,
+          "w": 0.45,
+          "d": 0.4,
+          "h": 0.5,
+          "rot": 270
+        },
+        {
+          "id": "wardrobe",
+          "type": "wardrobe",
+          "x": 2,
+          "y": 3.8,
+          "w": 1.9,
+          "d": 0.6,
+          "h": 2.4,
+          "rot": 180
+        },
+        {
+          "id": "armchair",
+          "type": "armchair",
+          "name": "Reading chair",
+          "x": -2.8,
+          "y": 3,
+          "w": 0.85,
+          "d": 0.85,
+          "h": 0.85,
+          "rot": 90
+        },
+        {
+          "id": "bathtub",
+          "type": "bathtub",
+          "x": 0.25,
+          "y": 6.55,
+          "w": 1.7,
+          "d": 0.75,
+          "h": 0.55,
+          "rot": 180
+        },
+        {
+          "id": "vanity-double",
+          "type": "vanity-double",
+          "x": 2.6,
+          "y": 4.6,
+          "w": 1.2,
+          "d": 0.5,
+          "h": 0.85,
+          "rot": 0
+        },
+        {
+          "id": "wc",
+          "type": "wc",
+          "x": 3.3,
+          "y": 6.6,
+          "w": 0.4,
+          "d": 0.65,
+          "h": 0.4,
+          "rot": 180
+        },
+        {
+          "id": "shower-2",
+          "type": "shower",
+          "x": 11.05,
+          "y": 0.25,
+          "w": 0.9,
+          "d": 0.9,
+          "h": 0.05,
+          "rot": 0
+        },
+        {
+          "id": "wc-2",
+          "type": "wc",
+          "x": 10.4,
+          "y": 0.25,
+          "w": 0.4,
+          "d": 0.65,
+          "h": 0.4,
+          "rot": 0
+        },
+        {
+          "id": "washbasin",
+          "type": "washbasin",
+          "x": 9.2,
+          "y": 0.25,
+          "w": 0.6,
+          "d": 0.45,
+          "h": 0.85,
+          "rot": 0
+        },
+        {
+          "id": "bed-single",
+          "type": "bed-single",
+          "x": 5.3,
+          "y": 5.3,
+          "w": 0.9,
+          "d": 2,
+          "h": 0.5,
+          "rot": 270
+        },
+        {
+          "id": "desk",
+          "type": "desk",
+          "x": 6.5,
+          "y": 2.6,
+          "w": 1.4,
+          "d": 0.7,
+          "h": 0.75,
+          "rot": 0
+        },
+        {
+          "id": "wardrobe-2",
+          "type": "wardrobe",
+          "x": 7.3,
+          "y": 3.4,
+          "w": 1.6,
+          "d": 0.6,
+          "h": 2.4,
+          "rot": 90
+        },
+        {
+          "id": "bed-queen",
+          "type": "bed-queen",
+          "x": 9.9,
+          "y": 4.6,
+          "w": 1.6,
+          "d": 2.1,
+          "h": 0.5,
+          "rot": 90
+        },
+        {
+          "id": "nightstand-3",
+          "type": "nightstand",
+          "x": 11.35,
+          "y": 4.15,
+          "w": 0.45,
+          "d": 0.4,
+          "h": 0.5,
+          "rot": 90
+        },
+        {
+          "id": "nightstand-4",
+          "type": "nightstand",
+          "x": 11.35,
+          "y": 6.2,
+          "w": 0.45,
+          "d": 0.4,
+          "h": 0.5,
+          "rot": 90
+        },
+        {
+          "id": "wardrobe-3",
+          "type": "wardrobe",
+          "x": 8.1,
+          "y": 2.6,
+          "w": 1.8,
+          "d": 0.6,
+          "h": 2.4,
+          "rot": 270
+        }
+      ],
+      "points": [
+        {
+          "id": "light",
+          "kind": "light",
+          "x": -2,
+          "y": 3.5,
+          "h": null,
+          "auto": true,
+          "room": "tower2",
+          "circuit": "L2"
+        },
+        {
+          "id": "switch",
+          "kind": "switch",
+          "x": -0.27,
+          "y": 4.4,
+          "h": 1.1,
+          "auto": true,
+          "room": "tower2"
+        },
+        {
+          "id": "socket",
+          "kind": "socket",
+          "x": -1.75,
+          "y": 1.27,
+          "h": 0.3,
+          "auto": true,
+          "room": "tower2",
+          "circuit": "S7"
+        },
+        {
+          "id": "socket-2",
+          "kind": "socket",
+          "x": -0.27,
+          "y": 4.55,
+          "h": 0.3,
+          "auto": true,
+          "room": "tower2",
+          "circuit": "S7"
+        },
+        {
+          "id": "socket-3",
+          "kind": "socket",
+          "x": -2.25,
+          "y": 5.73,
+          "h": 0.3,
+          "auto": true,
+          "room": "tower2",
+          "circuit": "S7"
+        },
+        {
+          "id": "socket-4",
+          "kind": "socket",
+          "x": -3.87,
+          "y": 3.25,
+          "h": 0.3,
+          "auto": true,
+          "room": "tower2",
+          "circuit": "S7"
+        },
+        {
+          "id": "light-2",
+          "kind": "light",
+          "x": 2,
+          "y": 2.25,
+          "h": null,
+          "auto": true,
+          "room": "master",
+          "circuit": "L2"
+        },
+        {
+          "id": "switch-2",
+          "kind": "switch",
+          "x": 3.88,
+          "y": 0.6,
+          "h": 1.1,
+          "auto": true,
+          "room": "master"
+        },
+        {
+          "id": "switch-3",
+          "kind": "switch",
+          "x": 0.28,
+          "y": 4.38,
+          "h": 1.1,
+          "auto": true,
+          "room": "master"
+        },
+        {
+          "id": "switch-4",
+          "kind": "switch",
+          "x": 3.6,
+          "y": 4.38,
+          "h": 1.1,
+          "auto": true,
+          "room": "master"
+        },
+        {
+          "id": "socket-5",
+          "kind": "socket",
+          "x": 2.13,
+          "y": 0.28,
+          "h": 0.3,
+          "auto": true,
+          "room": "master",
+          "circuit": "S7"
+        },
+        {
+          "id": "socket-6",
+          "kind": "socket",
+          "x": 3.88,
+          "y": 2.38,
+          "h": 0.3,
+          "auto": true,
+          "room": "master",
+          "circuit": "S7"
+        },
+        {
+          "id": "socket-7",
+          "kind": "socket",
+          "x": 1.88,
+          "y": 4.38,
+          "h": 0.3,
+          "auto": true,
+          "room": "master",
+          "circuit": "S7"
+        },
+        {
+          "id": "socket-8",
+          "kind": "socket",
+          "x": 0.28,
+          "y": 1.92,
+          "h": 0.3,
+          "auto": true,
+          "room": "master",
+          "circuit": "S7"
+        },
+        {
+          "id": "light-3",
+          "kind": "light",
+          "x": 2,
+          "y": 6,
+          "h": null,
+          "auto": true,
+          "room": "bath",
+          "circuit": "L2"
+        },
+        {
+          "id": "switch-5",
+          "kind": "switch",
+          "x": 3.6,
+          "y": 4.63,
+          "h": 1.1,
+          "auto": true,
+          "room": "bath"
+        },
+        {
+          "id": "socket-9",
+          "kind": "socket",
+          "x": 3.6,
+          "y": 7.23,
+          "h": 0.3,
+          "auto": true,
+          "room": "bath",
+          "circuit": "B1"
+        },
+        {
+          "id": "light-4",
+          "kind": "light",
+          "x": 6.5,
+          "y": 1.25,
+          "h": null,
+          "auto": true,
+          "room": "landing",
+          "circuit": "L2"
+        },
+        {
+          "id": "switch-6",
+          "kind": "switch",
+          "x": 5.3,
+          "y": 2.38,
+          "h": 1.1,
+          "auto": true,
+          "room": "landing"
+        },
+        {
+          "id": "switch-7",
+          "kind": "switch",
+          "x": 4.13,
+          "y": 0.6,
+          "h": 1.1,
+          "auto": true,
+          "room": "landing"
+        },
+        {
+          "id": "switch-8",
+          "kind": "switch",
+          "x": 6.5,
+          "y": 2.38,
+          "h": 1.1,
+          "auto": true,
+          "room": "landing"
+        },
+        {
+          "id": "switch-9",
+          "kind": "switch",
+          "x": 8.88,
+          "y": 2.38,
+          "h": 1.1,
+          "auto": true,
+          "room": "landing"
+        },
+        {
+          "id": "switch-10",
+          "kind": "switch",
+          "x": 8.88,
+          "y": 1.8,
+          "h": 1.1,
+          "auto": true,
+          "room": "landing"
+        },
+        {
+          "id": "socket-10",
+          "kind": "socket",
+          "x": 7.75,
+          "y": 0.28,
+          "h": 0.3,
+          "auto": true,
+          "room": "landing",
+          "circuit": "S7"
+        },
+        {
+          "id": "socket-11",
+          "kind": "socket",
+          "x": 4.13,
+          "y": 2.15,
+          "h": 0.3,
+          "auto": true,
+          "room": "landing",
+          "circuit": "S7"
+        },
+        {
+          "id": "light-5",
+          "kind": "light",
+          "x": 10.5,
+          "y": 1.25,
+          "h": null,
+          "auto": true,
+          "room": "shower",
+          "circuit": "L2"
+        },
+        {
+          "id": "switch-11",
+          "kind": "switch",
+          "x": 9.13,
+          "y": 1.8,
+          "h": 1.1,
+          "auto": true,
+          "room": "shower"
+        },
+        {
+          "id": "socket-12",
+          "kind": "socket",
+          "x": 11.6,
+          "y": 2.38,
+          "h": 0.3,
+          "auto": true,
+          "room": "shower",
+          "circuit": "B1"
+        },
+        {
+          "id": "light-6",
+          "kind": "light",
+          "x": 6.6,
+          "y": 5,
+          "h": null,
+          "auto": true,
+          "room": "bed2",
+          "circuit": "L2"
+        },
+        {
+          "id": "switch-12",
+          "kind": "switch",
+          "x": 6.5,
+          "y": 2.63,
+          "h": 1.1,
+          "auto": true,
+          "room": "bed2"
+        },
+        {
+          "id": "socket-13",
+          "kind": "socket",
+          "x": 7.15,
+          "y": 2.63,
+          "h": 0.3,
+          "auto": true,
+          "room": "bed2",
+          "circuit": "S6"
+        },
+        {
+          "id": "socket-14",
+          "kind": "socket",
+          "x": 7.88,
+          "y": 5.55,
+          "h": 0.3,
+          "auto": true,
+          "room": "bed2",
+          "circuit": "S6"
+        },
+        {
+          "id": "socket-15",
+          "kind": "socket",
+          "x": 6.05,
+          "y": 7.23,
+          "h": 0.3,
+          "auto": true,
+          "room": "bed2",
+          "circuit": "S6"
+        },
+        {
+          "id": "socket-16",
+          "kind": "socket",
+          "x": 5.33,
+          "y": 4.45,
+          "h": 0.3,
+          "auto": true,
+          "room": "bed2",
+          "circuit": "S6"
+        },
+        {
+          "id": "light-7",
+          "kind": "light",
+          "x": 10,
+          "y": 5,
+          "h": null,
+          "auto": true,
+          "room": "bed3",
+          "circuit": "L2"
+        },
+        {
+          "id": "switch-13",
+          "kind": "switch",
+          "x": 9.15,
+          "y": 2.63,
+          "h": 1.1,
+          "auto": true,
+          "room": "bed3"
+        },
+        {
+          "id": "socket-17",
+          "kind": "socket",
+          "x": 10.25,
+          "y": 2.63,
+          "h": 0.3,
+          "auto": true,
+          "room": "bed3",
+          "circuit": "S6"
+        },
+        {
+          "id": "socket-18",
+          "kind": "socket",
+          "x": 11.73,
+          "y": 5.25,
+          "h": 0.3,
+          "auto": true,
+          "room": "bed3",
+          "circuit": "S6"
+        },
+        {
+          "id": "socket-19",
+          "kind": "socket",
+          "x": 9.75,
+          "y": 7.23,
+          "h": 0.3,
+          "auto": true,
+          "room": "bed3",
+          "circuit": "S6"
+        },
+        {
+          "id": "socket-20",
+          "kind": "socket",
+          "x": 8.13,
+          "y": 4.75,
+          "h": 0.3,
+          "auto": true,
+          "room": "bed3",
+          "circuit": "S6"
+        },
+        {
+          "id": "water-cold",
+          "kind": "water-cold",
+          "x": 1.2,
+          "y": 7.3,
+          "h": 0.5,
+          "auto": true,
+          "for": "bathtub",
+          "room": "bath"
+        },
+        {
+          "id": "water-hot",
+          "kind": "water-hot",
+          "x": 1,
+          "y": 7.3,
+          "h": 0.5,
+          "auto": true,
+          "for": "bathtub",
+          "room": "bath"
+        },
+        {
+          "id": "drain",
+          "kind": "drain",
+          "x": 1.1,
+          "y": 7.15,
+          "h": 0.1,
+          "auto": true,
+          "for": "bathtub",
+          "room": "bath",
+          "size": 50
+        },
+        {
+          "id": "water-cold-2",
+          "kind": "water-cold",
+          "x": 3.1,
+          "y": 4.6,
+          "h": 0.5,
+          "auto": true,
+          "for": "vanity-double",
+          "room": "bath"
+        },
+        {
+          "id": "water-hot-2",
+          "kind": "water-hot",
+          "x": 3.3,
+          "y": 4.6,
+          "h": 0.5,
+          "auto": true,
+          "for": "vanity-double",
+          "room": "bath"
+        },
+        {
+          "id": "drain-2",
+          "kind": "drain",
+          "x": 3.2,
+          "y": 4.75,
+          "h": 0.1,
+          "auto": true,
+          "for": "vanity-double",
+          "room": "bath",
+          "size": 40
+        },
+        {
+          "id": "water-cold-3",
+          "kind": "water-cold",
+          "x": 3.6,
+          "y": 7.25,
+          "h": 0.5,
+          "auto": true,
+          "for": "wc",
+          "room": "bath"
+        },
+        {
+          "id": "drain-3",
+          "kind": "drain",
+          "x": 3.5,
+          "y": 7.1,
+          "h": 0.1,
+          "auto": true,
+          "for": "wc",
+          "room": "bath",
+          "size": 110
+        },
+        {
+          "id": "water-cold-4",
+          "kind": "water-cold",
+          "x": 11.4,
+          "y": 0.25,
+          "h": 0.5,
+          "auto": true,
+          "for": "shower-2",
+          "room": "shower"
+        },
+        {
+          "id": "water-hot-3",
+          "kind": "water-hot",
+          "x": 11.6,
+          "y": 0.25,
+          "h": 0.5,
+          "auto": true,
+          "for": "shower-2",
+          "room": "shower"
+        },
+        {
+          "id": "drain-4",
+          "kind": "drain",
+          "x": 11.5,
+          "y": 0.4,
+          "h": 0.1,
+          "auto": true,
+          "for": "shower-2",
+          "room": "shower",
+          "size": 50
+        },
+        {
+          "id": "water-cold-5",
+          "kind": "water-cold",
+          "x": 10.5,
+          "y": 0.25,
+          "h": 0.5,
+          "auto": true,
+          "for": "wc-2",
+          "room": "shower"
+        },
+        {
+          "id": "drain-5",
+          "kind": "drain",
+          "x": 10.6,
+          "y": 0.4,
+          "h": 0.1,
+          "auto": true,
+          "for": "wc-2",
+          "room": "shower",
+          "size": 110
+        },
+        {
+          "id": "water-cold-6",
+          "kind": "water-cold",
+          "x": 9.4,
+          "y": 0.25,
+          "h": 0.5,
+          "auto": true,
+          "for": "washbasin",
+          "room": "shower"
+        },
+        {
+          "id": "water-hot-4",
+          "kind": "water-hot",
+          "x": 9.6,
+          "y": 0.25,
+          "h": 0.5,
+          "auto": true,
+          "for": "washbasin",
+          "room": "shower"
+        },
+        {
+          "id": "drain-6",
+          "kind": "drain",
+          "x": 9.5,
+          "y": 0.4,
+          "h": 0.1,
+          "auto": true,
+          "for": "washbasin",
+          "room": "shower",
+          "size": 40
+        },
+        {
+          "id": "socket-21",
+          "kind": "socket",
+          "x": 7.2,
+          "y": 2.6,
+          "h": 0.3,
+          "auto": true,
+          "for": "desk",
+          "room": "bed2",
+          "circuit": "S6"
+        },
+        {
+          "id": "data",
+          "kind": "data",
+          "x": 7.45,
+          "y": 2.6,
+          "h": 0.3,
+          "auto": true,
+          "for": "desk",
+          "room": "bed2"
+        }
+      ]
+    }
+  ],
+  "site": [
+    {
+      "id": "plot",
+      "name": "Plot",
+      "type": "plot",
+      "x": -12,
+      "y": -10,
+      "w": 32,
+      "h": 30
+    },
+    {
+      "id": "driveway",
+      "name": "Drive",
+      "type": "driveway",
+      "x": 5.6,
+      "y": -10,
+      "w": 2,
+      "h": 9.75
+    },
+    {
+      "id": "terrace",
+      "name": "Terrace",
+      "type": "terrace",
+      "x": -1,
+      "y": 7.5,
+      "w": 8.6,
+      "h": 3.5
+    },
+    {
+      "id": "tree-1",
+      "name": "Lime tree",
+      "type": "tree",
+      "x": -9.5,
+      "y": -7,
+      "w": 4.5,
+      "h": 4.5,
+      "height": 9
+    },
+    {
+      "id": "tree-2",
+      "name": "Apple tree",
+      "type": "tree",
+      "x": 13.5,
+      "y": 11,
+      "w": 4,
+      "h": 4,
+      "height": 5
+    },
+    {
+      "id": "hedge",
+      "name": "Hedge",
+      "type": "hedge",
+      "x": -11,
+      "y": 17,
+      "w": 30,
+      "h": 0.7,
+      "height": 1.4
+    },
+    {
+      "id": "bush-1",
+      "name": "Boxwood",
+      "type": "bush",
+      "x": 3.6,
+      "y": -1.6,
+      "w": 1,
+      "h": 1,
+      "height": 0.9
+    },
+    {
+      "id": "bush-2",
+      "name": "Boxwood",
+      "type": "bush",
+      "x": 7.6,
+      "y": -1.6,
+      "w": 1,
+      "h": 1,
+      "height": 0.9
+    }
+  ],
+  "electrical": {
+    "supply": "3x25A",
+    "circuits": [
+      {
+        "id": "L1",
+        "name": "Lights – Ground floor",
+        "kind": "lighting",
+        "voltage": 230,
+        "breaker": "B10",
+        "auto": true,
+        "load": 220,
+        "phase": "L2"
+      },
+      {
+        "id": "A1",
+        "name": "Dishwasher (ground floor)",
+        "kind": "appliance",
+        "voltage": 230,
+        "breaker": "B16",
+        "rcd": true,
+        "auto": true,
+        "load": 2200,
+        "items": [
+          "ground/dishwasher"
+        ],
+        "phase": "L1"
+      },
+      {
+        "id": "A2",
+        "name": "Induction hob (ground floor)",
+        "kind": "appliance",
+        "voltage": 400,
+        "breaker": "3×B16",
+        "rcd": true,
+        "auto": true,
+        "load": 7400,
+        "items": [
+          "ground/hob"
+        ],
+        "phase": "L1+L2+L3"
+      },
+      {
+        "id": "A3",
+        "name": "Heat pump (indoor unit) (ground floor)",
+        "kind": "appliance",
+        "voltage": 400,
+        "breaker": "3×B16",
+        "rcd": true,
+        "auto": true,
+        "load": 6000,
+        "items": [
+          "ground/heat-pump"
+        ],
+        "phase": "L1+L2+L3"
+      },
+      {
+        "id": "A4",
+        "name": "Hot water cylinder (ground floor)",
+        "kind": "appliance",
+        "voltage": 230,
+        "breaker": "B16",
+        "rcd": true,
+        "auto": true,
+        "load": 2000,
+        "items": [
+          "ground/water-heater"
+        ],
+        "phase": "L3"
+      },
+      {
+        "id": "A5",
+        "name": "Washing machine (ground floor)",
+        "kind": "appliance",
+        "voltage": 230,
+        "breaker": "B16",
+        "rcd": true,
+        "auto": true,
+        "load": 2200,
+        "items": [
+          "ground/washer"
+        ],
+        "phase": "L2"
+      },
+      {
+        "id": "K1",
+        "name": "Kitchen counter sockets – Ground floor",
+        "kind": "sockets",
+        "voltage": 230,
+        "breaker": "B16",
+        "rcd": true,
+        "auto": true,
+        "load": 2000,
+        "phase": "L3"
+      },
+      {
+        "id": "S1",
+        "name": "Sockets – Dining bay",
+        "kind": "sockets",
+        "voltage": 230,
+        "breaker": "B16",
+        "rcd": true,
+        "auto": true,
+        "load": 2000,
+        "phase": "L1"
+      },
+      {
+        "id": "S2",
+        "name": "Sockets – Entrance hall, Kitchen",
+        "kind": "sockets",
+        "voltage": 230,
+        "breaker": "B16",
+        "rcd": true,
+        "auto": true,
+        "load": 2000,
+        "phase": "L2"
+      },
+      {
+        "id": "S3",
+        "name": "Sockets – Kitchen, Living room",
+        "kind": "sockets",
+        "voltage": 230,
+        "breaker": "B16",
+        "rcd": true,
+        "auto": true,
+        "load": 2000,
+        "phase": "L3"
+      },
+      {
+        "id": "S4",
+        "name": "Sockets – Study",
+        "kind": "sockets",
+        "voltage": 230,
+        "breaker": "B16",
+        "rcd": true,
+        "auto": true,
+        "load": 2000,
+        "phase": "L1"
+      },
+      {
+        "id": "S5",
+        "name": "Sockets – Technical & laundry, Library (tower)",
+        "kind": "sockets",
+        "voltage": 230,
+        "breaker": "B16",
+        "rcd": true,
+        "auto": true,
+        "load": 2000,
+        "phase": "L2"
+      },
+      {
+        "id": "L2",
+        "name": "Lights – Upper floor",
+        "kind": "lighting",
+        "voltage": 230,
+        "breaker": "B10",
+        "auto": true,
+        "load": 140,
+        "phase": "L2"
+      },
+      {
+        "id": "B1",
+        "name": "Bathroom sockets – Upper floor",
+        "kind": "sockets",
+        "voltage": 230,
+        "breaker": "B16",
+        "rcd": true,
+        "auto": true,
+        "load": 1500,
+        "phase": "L2"
+      },
+      {
+        "id": "S6",
+        "name": "Sockets – Bedroom 2, Bedroom 3",
+        "kind": "sockets",
+        "voltage": 230,
+        "breaker": "B16",
+        "rcd": true,
+        "auto": true,
+        "load": 2000,
+        "phase": "L3"
+      },
+      {
+        "id": "S7",
+        "name": "Sockets – Landing, Master bedroom, Reading nook (tower)",
+        "kind": "sockets",
+        "voltage": 230,
+        "breaker": "B16",
+        "rcd": true,
+        "auto": true,
+        "load": 2000,
+        "phase": "L1"
+      }
+    ]
+  }
+}

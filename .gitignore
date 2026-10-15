@@ -1,0 +1,8 @@
+node_modules
+.DS_Store
+.claude/settings.local.json
+
+# your own houses (each is its own git repository) and local settings
+houses/
+planner.config.json
+rates-cache.json

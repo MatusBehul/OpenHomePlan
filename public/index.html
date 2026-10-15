@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OpenHomePlan</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Cpath d=%22M4 15 16 5l12 10v13H4z%22 fill=%22%232f6fd6%22/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "/vendor/three/build/three.module.js",
+        "three/addons/": "/vendor/three/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">OpenHomePlan</div>
+    <select id="house-picker" class="house-picker" title="Switch house"></select>
+    <nav class="tabs" role="tablist">
+      <button data-view="plan" class="active">2D plan</button>
+      <button data-view="3d">3D</button>
+      <button data-view="costs">Costs</button>
+    </nav>
+    <div class="subtabs" id="plan-floors" aria-label="Floor"></div>
+    <button class="ghost small" id="add-room-btn" title="Add a room to this floor">+ Room</button>
+    <div class="chips" id="plan-layers" aria-label="Layers">
+      <button data-layer="furniture">Furniture</button>
+      <button data-layer="electrical">Electrical</button>
+      <button data-layer="water">Water &amp; gas</button>
+      <button data-layer="finishes">Finishes</button>
+      <button data-layer="roofs">Roofs</button>
+      <button data-layer="circuits" title="Show circuit ids next to electrical points">Circuit ids</button>
+    </div>
+    <div class="subtabs hidden" id="view3d-modes" aria-label="3D view"></div>
+    <div class="spacer"></div>
+    <div id="totals" class="totals"></div>
+    <details class="menu" id="export-menu">
+      <summary class="ghost-btn">Export</summary>
+      <div class="menu-list">
+        <button data-export="print">Plans &amp; brief — print or save as PDF…</button>
+        <button data-export="dxf">DXF for CAD (all floors, layered)</button>
+        <button data-export="md">Handover brief (.md)</button>
+        <button data-export="csv">Cost estimate — spreadsheet (.csv)</button>
+        <button data-export="costs">Cost estimate — print or save as PDF…</button>
+      </div>
+    </details>
+    <button id="undo" class="ghost icon" disabled title="Undo (Ctrl/⌘+Z)" aria-label="Undo"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 3.5 2.5 6.5l3 3"/><path d="M2.5 6.5h7a4 4 0 0 1 0 8H7"/></svg></button>
+    <button id="redo" class="ghost icon" disabled title="Redo (Ctrl/⌘+Shift+Z)" aria-label="Redo"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m10.5 3.5 3 3-3 3"/><path d="M13.5 6.5h-7a4 4 0 0 0 0 8H9"/></svg></button>
+    <button id="discard" class="ghost" disabled>Discard</button>
+    <button id="save" class="primary" disabled title="Save house.json and commit (Ctrl/⌘+S)">Save</button>
+  </header>
+
+  <main class="layout">
+    <section class="stage">
+      <div id="plan" class="view"></div>
+      <div id="view3d" class="view hidden"></div>
+      <div id="costs" class="view hidden"></div>
+      <div class="hint" id="hint"></div>
+    </section>
+
+    <aside class="sidebar">
+      <section class="panel" id="selection-panel"></section>
+      <section class="panel" id="comments-panel"></section>
+      <section class="panel" id="all-comments-panel">
+        <div class="panel-head">
+          <h2>All comments</h2>
+          <div class="seg" id="comment-filter">
+            <button data-filter="open" class="active">Open</button>
+            <button data-filter="resolved">Resolved</button>
+          </div>
+        </div>
+        <ul class="comment-list" id="all-comments"></ul>
+      </section>
+      <section class="panel" id="history-panel">
+        <div class="panel-head"><h2>History</h2></div>
+        <ul class="history" id="history"></ul>
+      </section>
+    </aside>
+  </main>
+
+  <div id="issues-pop" class="issues-pop" hidden></div>
+
+  <dialog id="new-house" class="dialog">
+    <form method="dialog">
+      <h2>New house</h2>
+      <label>Name<input id="new-house-name" placeholder="e.g. Our house on the hill" autocomplete="off"></label>
+      <label>Start from<select id="new-house-source"></select></label>
+      <p class="sub">It will be saved in <code id="new-house-dir"></code>, in its own folder with its own history.</p>
+      <div class="row" style="justify-content:flex-end">
+        <button class="ghost" id="new-house-cancel" type="button">Cancel</button>
+        <button class="primary" id="new-house-create">Create</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

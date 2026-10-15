@@ -1,0 +1,16 @@
+name: Idea or feature request
+description: Something the planner should be able to do
+labels: [enhancement]
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: What do you want to plan or check?
+      description: Describe the situation in your house or project, not only the button you'd like.
+    validations:
+      required: true
+  - type: textarea
+    id: example
+    attributes:
+      label: Example
+      description: A sketch, a photo, a catalogue link, or a house.json.

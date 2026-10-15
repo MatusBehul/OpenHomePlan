@@ -1,0 +1,18 @@
+{
+  "name": "openhomeplan",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Local, open-source house planner: 2D/3D plans, walls, stairs, structure, utilities and exports, driven by a JSON file per house",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "three": "^0.186.1"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  }
+}

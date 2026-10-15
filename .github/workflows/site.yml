@@ -1,0 +1,42 @@
+# Deploys the public page (site/) to Cloud Run when it changes on main.
+# Keyless: GitHub's OIDC token is exchanged through Workload Identity Federation (see deploy/README.md).
+name: Public page
+
+on:
+  push:
+    branches: [main]
+    paths: ['site/**', 'deploy/site/**', '.github/workflows/site.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: site
+  cancel-in-progress: true
+
+env:
+  PROJECT: openhomeplan
+  REGION: europe-west1
+  SERVICE: openhomeplan-site
+  IMAGE: europe-west1-docker.pkg.dev/openhomeplan/site/openhomeplan-site
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOY_SA }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - run: gcloud auth configure-docker europe-west1-docker.pkg.dev --quiet
+      - run: docker build -f deploy/site/Dockerfile -t "$IMAGE:$GITHUB_SHA" .
+      - run: docker push "$IMAGE:$GITHUB_SHA"
+      - run: >
+          gcloud run deploy "$SERVICE" --project "$PROJECT" --region "$REGION"
+          --image "$IMAGE:$GITHUB_SHA" --allow-unauthenticated --port 8080
+          --service-account "site-runtime@openhomeplan.iam.gserviceaccount.com"
+          --cpu 1 --memory 128Mi --min-instances 0 --max-instances 3 --quiet
