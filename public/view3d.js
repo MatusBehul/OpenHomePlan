@@ -4,7 +4,7 @@ import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer
 import { roomColor, siteColor } from './catalog.js';
 import { bbox, exteriorEdges, interiorEdges, placeOpening, placeDoor, solidPieces, roundShape, roomOutline, curvedWalls, arcSegments, arcPoint, inRoom } from './geometry.js';
 import { analyzeStairs, sortedFloors, stairSteps } from './stairs.js';
-import { roofZones, siteRoof, openEdges, roofHeightAt, ROOF_COVERINGS, covering, isGableEnd, roundRoofs } from './roof.js';
+import { roofZones, siteRoof, openEdges, roofHeightAt, ROOF_COVERINGS, covering, isGableEnd, roundRoofs, atticRoof as atticRoofOf, atticZoneAt, atticRoofForOpening, kneeWall } from './roof.js';
 import { floorWalls } from './walls.js';
 import { ITEMS, itemInfo, footprint, itemPoint } from './items.js';
 import { tileOrigin } from './symbols.js';
@@ -252,8 +252,12 @@ export function create3D(container, store) {
       const atticRoof = floor.underRoof ? roofOver(house, floor) : null;
       // a cut-away of an attic: the roof slopes cut at 1.6 m like walls, open where the dormers are
       const section = atticRoof?.geom && floor === cut ? atticSection(g, atticRoof.geom, e0, W, openings) : null;
-      if (floor.underRoof) for (const { o, p } of openings) g.add(dormer(floor, o, p, e0, ext, atticRoof, section));
-      for (const seg of floor.underRoof ? [] : edges) {
+      if (floor.underRoof) for (const { o, p } of openings) g.add(dormer(floor, o, p, e0, ext, { ...atticRoof, geom: atticRoofForOpening(house, floor, p) || atticRoof.geom }, section));
+      // an attic with a knee wall has short outer walls up to the eaves (its windows are dormers
+      // or sit in the gable ends, drawn above); a full floor has walls with its openings
+      const knee = kneeWall(floor);
+      const wallTop = floor.underRoof ? Math.min(knee, W) : W;
+      for (const seg of floor.underRoof && !knee ? [] : edges) {
         const along = seg.horizontal ? [seg.x1, seg.x2] : [seg.y1, seg.y2];
         const mine = openings
           .filter(({ p }) => p.edge === seg)
@@ -261,15 +265,17 @@ export function create3D(container, store) {
         let cursor = along[0];
         const pieces = [];
         for (const { o, p } of mine) {
-          pieces.push([cursor, p.from, 0, W]);
-          const sill = Math.min(o.sill ?? 0, W);
-          const head = Math.min(W, sill + (o.height ?? 1.4));
+          pieces.push([cursor, p.from, 0, wallTop]);
+          const sill = Math.min(o.sill ?? 0, wallTop);
+          const head = Math.min(wallTop, sill + (o.height ?? 1.4));
           if (sill > 0) pieces.push([p.from, p.to, 0, sill]);
-          if (head < W) pieces.push([p.from, p.to, head, W]);
-          if (head - sill > 0.05) g.add(openingObject(seg, o, p, e0, sill, head, ext));
+          if (!floor.underRoof) {
+            if (head < W) pieces.push([p.from, p.to, head, W]);
+            if (head - sill > 0.05) g.add(openingObject(seg, o, p, e0, sill, head, ext));
+          }
           cursor = p.to;
         }
-        pieces.push([cursor, along[1], 0, W]);
+        pieces.push([cursor, along[1], 0, wallTop]);
         pieces.forEach(([a, b, y0, y1], i) => {
           const first = i === 0;
           const last = i === pieces.length - 1;
@@ -285,6 +291,11 @@ export function create3D(container, store) {
       const inner = interiorEdges(floor);
       const doors = (floor.doors || []).map((d) => ({ d, p: placeDoor(floor, d, inner) })).filter((x) => x.p);
       const props = new Map(floorWalls(house, floor).inner.map((w) => [w.key, w.props]));
+      // the roof over a piece of wall (an attic can sit under several roof areas)
+      const geomAt = (e, a, b) => {
+        const [x, y] = e.horizontal ? [(a + b) / 2, e.y1] : [e.x1, (a + b) / 2];
+        return atticZoneAt(house, floor, x, y) || atticRoof.geom;
+      };
       for (const e of inner) {
         const key = `wall:${e.rooms.map((i) => floor.rooms[i].id).sort().join(':')}`;
         const { type = 'wall', thickness = int, loadBearing } = props.get(key) || {};
@@ -300,7 +311,7 @@ export function create3D(container, store) {
         if (atticRoof?.geom) {
           // under a roof: walls follow the slopes (and stop at the cut height in a cut-away)
           for (const [a, b] of solidPieces(lo, hi, mine.map(({ p }) => [p.from, p.to]))) {
-            const w = roofWall(e, a, b, e0, e0 + top, thick, material, atticRoof.geom);
+            const w = roofWall(e, a, b, e0, e0 + top, thick, material, geomAt(e, a, b));
             if (w) {
               w.userData.target = `${floor.id}/${key}`;
               g.add(w);
@@ -309,7 +320,7 @@ export function create3D(container, store) {
           if (type !== 'wall' && type !== 'glass') continue;
           for (const { d, p } of mine) {
             const head = Math.min(d.height ?? 2.1, W);
-            const header = roofWall(e, p.from, p.to, e0 + head, e0 + W - 0.01, thick, material, atticRoof.geom);
+            const header = roofWall(e, p.from, p.to, e0 + head, e0 + W - 0.01, thick, material, geomAt(e, p.from, p.to));
             if (header) g.add(header);
             const leaf = doorLeaf(floor, d, p, e0, head, thick);
             if (leaf) g.add(leaf);
@@ -361,12 +372,12 @@ export function create3D(container, store) {
       for (const r of floor.rooms) if (r.finish?.walls) addWallFinish(g, house, floor, r, e0, W);
       // furniture & appliances
       // furniture is cut at the section height in a cut-away, and kept under the roof in an attic
-      const planes = [
-        ...(floor === cut ? [new THREE.Plane(new THREE.Vector3(0, -1, 0), e0 + W)] : []),
-        ...(atticRoof?.geom ? roofClipPlanes(atticRoof.geom, 0.25) : []),
-      ];
+      const cutPlanes = floor === cut ? [new THREE.Plane(new THREE.Vector3(0, -1, 0), e0 + W)] : [];
       for (const it of floor.items || []) {
         const obj = itemObject(floor, it, e0);
+        const turned = it.rot === 90 || it.rot === 270;
+        const over = atticRoof?.geom ? atticZoneAt(house, floor, it.x + (turned ? it.d : it.w) / 2, it.y + (turned ? it.w : it.d) / 2) || atticRoof.geom : null;
+        const planes = [...cutPlanes, ...(over ? roofClipPlanes(over, 0.25) : [])];
         if (planes.length)
           obj.traverse((m) => {
             if (!m.material) return;
@@ -1020,17 +1031,13 @@ export function create3D(container, store) {
 
   // The roof that covers an attic floor, and the area its interior walls must stay in.
   function roofOver(house, floor) {
-    const b = bbox(floor.rooms);
-    const cx = b.x + b.w / 2;
-    const cy = b.y + b.h / 2;
-    const z = roofZones(house).find(({ geom: g }) => cx > g.outer.x && cx < g.outer.x + g.outer.w && cy > g.outer.y && cy < g.outer.y + g.outer.h && Math.abs(g.eave - (floor.elevation ?? 0)) < 0.5);
-    if (!z) return { geom: null, clip: { x0: -Infinity, x1: Infinity, y0: -Infinity, y1: Infinity, top: floor.height ?? 2.8 } };
-    const g = z.geom;
+    const g = atticRoofOf(house, floor);
+    if (!g) return { geom: null, clip: { x0: -Infinity, x1: Infinity, y0: -Infinity, y1: Infinity, top: floor.height ?? 2.8 } };
     if (g.type === 'mansard') {
       const r = g.mansard.inner;
       return { geom: g, clip: { x0: r.x, x1: r.x + r.w, y0: r.y, y1: r.y + r.h, top: g.mansard.brk } };
     }
-    return { geom: g, clip: { x0: g.outer.x + 0.8, x1: g.outer.x + g.outer.w - 0.8, y0: g.outer.y + 0.8, y1: g.outer.y + g.outer.h - 0.8, top: Math.min(floor.height ?? 2.8, g.rise) } };
+    return { geom: g, clip: { x0: g.outer.x + 0.8, x1: g.outer.x + g.outer.w - 0.8, y0: g.outer.y + 0.8, y1: g.outer.y + g.outer.h - 0.8, top: Math.min(floor.height ?? 2.8, kneeWall(floor) + g.rise) } };
   }
 
   // A dormer around an attic window: cheeks, front wall, the window, and its own small roof

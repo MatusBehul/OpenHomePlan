@@ -83,7 +83,10 @@ without overlaps or gaps.
   `type` flat/shed/gable/hip/mansard, `pitch`, `ridge` x|y, `low`, `overhang`, `parapet`,
   `walkable`, `lowerPitch`/`breakHeight` (mansard), `material` / `topMaterial` (covering, keys of
   `ROOF_COVERINGS` in `public/roof.js`; topMaterial is a mansard's shallow top), `chimneys[]`). Floors with `underRoof: true`
-  are attics: no outer walls in 3D, their windows (`dormer`: gable/arch/flat) become dormers.
+  are attics: their outer walls are the roof (or only a `kneeWall`, metres of wall below the eaves,
+  which raises the eaves of the roof areas over them), windows in gable ends stay windows and the
+  others (`dormer`: gable/arch/flat) become dormers. The roof areas over an attic sit on the floor
+  below it; each wall, window and item uses the roof area above it (`atticZoneAt`).
   Comment target for a roof area: `roofs/<id>`. Roof areas re-fit to the floors on every change (lower wings keep their roof type)
   (`syncRoofZones` in `public/roof.js`, called from `store.changed()`) unless `house.roofAuto`
   is `false`; areas with `fixed: true` were placed by hand and are left alone. When editing

@@ -9,7 +9,7 @@
 import { totals, exteriorEdges, interiorEdges, placeDoor, placeOpening, curvedWalls } from './geometry.js';
 import { floorWalls } from './walls.js';
 import { sortedFloors } from './stairs.js';
-import { roofZones, roofArea, roofParts, openEdges, ROOF_COVERINGS, covering, atticRoof, isGableEnd, roundRoofs, coneArea } from './roof.js';
+import { roofZones, roofArea, roofParts, openEdges, ROOF_COVERINGS, covering, atticRoof, atticRoofForOpening, kneeWall, isGableEnd, roundRoofs, coneArea } from './roof.js';
 import { ITEMS, roomAt } from './items.js';
 import { measure } from './shapes.js';
 import { facadeQuantities } from './facade.js';
@@ -204,8 +204,9 @@ export function estimate(house) {
       else add('wall-partition', cw.length * H);
     }
     for (const o of floor.openings || []) if (placeOpening(floor, o, edges)) ext -= o.width * Math.min(o.height ?? 1.4, H);
-    // an attic's outer walls are the roof slopes (priced with the roof)
+    // an attic's outer walls are the roof slopes (priced with the roof), apart from a knee wall
     if (!floor.underRoof) add('wall-exterior', ext);
+    else if (kneeWall(floor)) add('wall-exterior', edges.reduce((a, e) => a + e.length, 0) * kneeWall(floor));
     const inner = interiorEdges(floor);
     const doorArea = new Map();
     for (const d of floor.doors || []) {
@@ -255,7 +256,14 @@ export function estimate(house) {
   add('quoins', fq.quoinsM);
   add('rustication', fq.rusticationM2);
   // attic windows are dormers, except those in the gable end walls
-  add('dormer', floors.filter((f) => f.underRoof).reduce((s, f) => s + (f.openings || []).filter((o) => o.type === 'window' && !isGableEnd(atticRoof(house, f), o.facade)).length, 0));
+  add('dormer', floors.filter((f) => f.underRoof).reduce((s, f) => {
+    const edges = exteriorEdges(f);
+    return s + (f.openings || []).filter((o) => {
+      if (o.type !== 'window') return false;
+      const p = placeOpening(f, o, edges);
+      return !isGableEnd(p ? atticRoofForOpening(house, f, p) : atticRoof(house, f), o.facade);
+    }).length;
+  }, 0));
 
   // ---- openings
   const dbl = s.glazing === 'double' ? '-double' : '';

@@ -84,7 +84,12 @@ export function roofZones(house) {
       const floor = floors.find((f) => f.id === z.on) || floors[floors.length - 1];
       if (!floor) return null;
       const outer = { x: z.x - ext / 2, y: z.y - ext / 2, w: z.w + ext, h: z.h + ext };
-      const eave = (floor.elevation ?? 0) + (floor.height ?? 2.8);
+      // over an attic with a knee wall the eaves sit that much above the attic floor
+      const attic = floors[floors.indexOf(floor) + 1];
+      const cx = z.x + z.w / 2;
+      const cy = z.y + z.h / 2;
+      const knee = attic?.underRoof && attic.rooms?.some((r) => cx > r.x && cx < r.x + r.w && cy > r.y && cy < r.y + r.h) ? kneeWall(attic) : 0;
+      const eave = (floor.elevation ?? 0) + (floor.height ?? 2.8) + knee;
       return { zone: z, floor, id: z.id, geom: roofShape(outer, eave, z, ext, ROOF_DEFAULTS) };
     })
     .filter(Boolean);
@@ -327,15 +332,34 @@ export function syncRoofZones(house) {
   return JSON.stringify(house.roofs) !== before;
 }
 
-// The roof that covers an attic floor (its eave within 0.5 m of the floor), or null.
+// Height of an attic's knee wall: the short outer wall between the attic floor and the eaves.
+export const kneeWall = (floor) => (floor?.underRoof ? Math.max(0, Number(floor.kneeWall) || 0) : 0);
+
+// The roof over a point of an attic floor (a roof area whose eaves sit at the attic floor plus
+// its knee wall), or null.
+export function atticZoneAt(house, floor, x, y) {
+  if (!floor?.underRoof) return null;
+  const eave = (floor.elevation ?? 0) + kneeWall(floor);
+  const z = roofZones(house).find(({ geom: g }) => x > g.outer.x && x < g.outer.x + g.outer.w && y > g.outer.y && y < g.outer.y + g.outer.h && Math.abs(g.eave - eave) < 0.5);
+  return z ? z.geom : null;
+}
+
+// The roof that covers an attic floor (at the middle of its rooms), or null.
 export function atticRoof(house, floor) {
   if (!floor?.underRoof || !floor.rooms?.length) return null;
   const xs = floor.rooms.flatMap((r) => [r.x, r.x + r.w]);
   const ys = floor.rooms.flatMap((r) => [r.y, r.y + r.h]);
   const cx = (Math.min(...xs) + Math.max(...xs)) / 2;
   const cy = (Math.min(...ys) + Math.max(...ys)) / 2;
-  const z = roofZones(house).find(({ geom: g }) => cx > g.outer.x && cx < g.outer.x + g.outer.w && cy > g.outer.y && cy < g.outer.y + g.outer.h && Math.abs(g.eave - (floor.elevation ?? 0)) < 0.5);
-  return z ? z.geom : null;
+  return atticZoneAt(house, floor, cx, cy) || floor.rooms.map((r) => atticZoneAt(house, floor, r.x + r.w / 2, r.y + r.h / 2)).find(Boolean) || null;
+}
+
+// The roof over an exterior opening of an attic (decides gable-end window vs dormer).
+export function atticRoofForOpening(house, floor, p) {
+  const mid = (p.from + p.to) / 2;
+  const [x, y] = p.horizontal ? [mid, p.y1] : [p.x1, mid];
+  const inward = { N: [0, 0.3], S: [0, -0.3], W: [0.3, 0], E: [-0.3, 0] }[p.edge?.side] || [0, 0];
+  return atticZoneAt(house, floor, x + inward[0], y + inward[1]) || atticRoof(house, floor);
 }
 
 // Facades that are gable ends (vertical triangular walls) of a gable roof: windows there are

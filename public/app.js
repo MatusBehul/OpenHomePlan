@@ -388,13 +388,13 @@ function floorsHtml() {
   const floors = sortedFloors(store.house);
   return `<div class="subhead">Floors</div>
     <div class="floor-table">
-      <span>Name</span><span>Level (m)</span><span>Floor-to-floor (m)</span><span title="Attic: the floor lies under the roof; its windows become dormers">Attic</span><span></span>
+      <span>Name</span><span>Level (m)</span><span>Floor-to-floor (m)</span><span title="Attic: the floor lies under the roof; its windows become dormers (or gable windows). The number is the knee wall: the height of the outer wall below the eaves.">Attic · knee (m)</span><span></span>
       ${floors
         .map(
           (f) => `<input data-floor-id="${esc(f.id)}" data-fkey="name" value="${esc(f.name)}">
             <input type="number" step="0.05" data-floor-id="${esc(f.id)}" data-fkey="elevation" value="${fmt(f.elevation ?? 0)}">
             <input type="number" step="0.05" data-floor-id="${esc(f.id)}" data-fkey="height" value="${fmt(f.height ?? 2.8)}">
-            <input type="checkbox" data-floor-id="${esc(f.id)}" data-fkey="underRoof" ${f.underRoof ? 'checked' : ''} title="Under the roof (attic)">
+            <span class="attic-cell"><input type="checkbox" data-floor-id="${esc(f.id)}" data-fkey="underRoof" ${f.underRoof ? 'checked' : ''} title="Under the roof (attic)">${f.underRoof ? `<input type="number" step="0.05" min="0" max="2" data-floor-id="${esc(f.id)}" data-fkey="kneeWall" value="${fmt(f.kneeWall ?? 0)}" title="Knee wall: the outer wall between the attic floor and the eaves (m)">` : ''}</span>
             <button class="small danger" data-delete-floor="${esc(f.id)}" title="Delete floor" ${floors.length < 2 ? 'disabled' : ''}>✕</button>`,
         )
         .join('')}
