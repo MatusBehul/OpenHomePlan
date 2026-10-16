@@ -682,7 +682,7 @@ function renderSelection() {
       : ''}
     ${kind === 'site' && item.type in SITE_ROOFED
       ? `<div class="subhead">Roof</div><div class="sub">${esc(roofText(siteRoof(item)))}</div>${roofFieldsHtml(item.roof, SITE_ROOF_DEFAULT, { withWalkable: ['carport', 'pergola'].includes(item.type) })}${['carport', 'pergola'].includes(item.type) && item.roof?.walkable
-          ? `<div class="fields"><label class="wide">Rests on the house on<select data-key="attached"><option value="">no side (pillars all round)</option>${[['N', 'North'], ['S', 'South'], ['E', 'East'], ['W', 'West']].map(([v, l]) => `<option value="${v}" ${v === item.attached ? 'selected' : ''}>${l} side</option>`).join('')}</select></label></div>
+          ? `<div class="fields"><label class="wide">Rests on the house on<select data-key="attached"><option value="">no side (pillars all round)</option>${[['N', 'North'], ['S', 'South'], ['E', 'East'], ['W', 'West'], ...(item.attached?.length > 1 ? [[item.attached, `${item.attached.split('').join(' + ')} sides`]] : [])].map(([v, l]) => `<option value="${v}" ${v === item.attached ? 'selected' : ''}>${l}${v.length === 1 ? ' side' : ''}</option>`).join('')}</select></label></div>
              <div class="sub">A walkable roof: a concrete slab on 30 cm pillars with a railing on the open sides. Pillars go round the edges at most 3.5 m apart, or exactly where <code>posts</code> lists them in house.json.</div>`
           : ''}`
       : ''}

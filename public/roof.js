@@ -180,7 +180,8 @@ export function roofGeometry(house) {
 export const SITE_ROOFED = { garage: 3.0, shed: 2.5, greenhouse: 2.6, carport: 2.4, pergola: 2.5 };
 
 // A carport (or pergola) whose flat roof is a walkable terrace: a slab on concrete pillars with a
-// railing on its open sides. `attached` (N/S/E/W) is the side that rests on the house wall.
+// railing on its open sides. `attached` lists the sides that rest on the house or join another
+// deck (e.g. 'S', or 'WN' for a balcony along a west wall that meets a terrace in the north).
 export const isTerraceOnPosts = (s) => (s.type === 'carport' || s.type === 'pergola') && s.roof?.type === 'flat' && !!s.roof.walkable;
 export const POST_SIZE = (s) => (isTerraceOnPosts(s) ? 0.3 : 0.15);
 
@@ -197,18 +198,18 @@ export function sitePosts(s, max = isTerraceOnPosts(s) ? 3.5 : 5) {
   const ys = along(s.y + p, s.y + s.h - p);
   const out = new Map();
   const put = (x, y) => out.set(`${x.toFixed(3)},${y.toFixed(3)}`, [x, y]);
-  const a = s.attached;
-  if (a !== 'N') for (const x of xs) put(x, ys[0]);
-  if (a !== 'S') for (const x of xs) put(x, ys[ys.length - 1]);
-  if (a !== 'W') for (const y of ys) put(xs[0], y);
-  if (a !== 'E') for (const y of ys) put(xs[xs.length - 1], y);
+  const a = s.attached || '';
+  if (!a.includes('N')) for (const x of xs) put(x, ys[0]);
+  if (!a.includes('S')) for (const x of xs) put(x, ys[ys.length - 1]);
+  if (!a.includes('W')) for (const y of ys) put(xs[0], y);
+  if (!a.includes('E')) for (const y of ys) put(xs[xs.length - 1], y);
   return [...out.values()];
 }
 
 // Open edges of a terrace on posts (everything but the attached side): [[x1, y1, x2, y2], …]
 export function terraceRailEdges(s) {
   const e = { N: [s.x, s.y, s.x + s.w, s.y], S: [s.x, s.y + s.h, s.x + s.w, s.y + s.h], W: [s.x, s.y, s.x, s.y + s.h], E: [s.x + s.w, s.y, s.x + s.w, s.y + s.h] };
-  return Object.entries(e).filter(([side]) => side !== s.attached).map(([, v]) => v);
+  return Object.entries(e).filter(([side]) => !(s.attached || '').includes(side)).map(([, v]) => v);
 }
 export const SITE_ROOF_DEFAULT = { type: 'flat', parapet: 0, overhang: 0.1 };
 

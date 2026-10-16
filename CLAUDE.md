@@ -78,7 +78,7 @@ without overlaps or gaps.
 - `site[]`: plot, garage, terrace, pool, greenhouse, driveway, path… (`x`, `y`, `w`, `h`);
   garage/shed/greenhouse/carport/pergola also take `height` and `roof` (same fields as the house
   roof, default flat); a carport/pergola with a flat `walkable` roof is a roof terrace on concrete
-  pillars (`posts` [[x, y]…] centres, else automatic; `attached` N/S/E/W = side resting on the house); trees/conifers/bushes/hedges use w/h as the crown and `height`; a `slope` is ground rising to
+  pillars (`posts` [[x, y]…] centres, else automatic; `attached` = sides resting on the house or joining another deck, e.g. 'S' or 'WN'); trees/conifers/bushes/hedges use w/h as the crown and `height`; a `slope` is ground rising to
   `height` towards `up` (N/S/E/W); any site element can be raised by `base` (m), e.g. a sauna on a
   cellar roof. The plot
   sets `street` (N/S/E/W, for the site plan label) and can carry `points` (polygon) and driveway/path `points` + `width` (curved centre line); x/y/w/h
