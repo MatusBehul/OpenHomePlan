@@ -53,7 +53,8 @@ without overlaps or gaps.
   `swing` in|out, sliding doors `hinge` = side the leaf slides to), `doors[]` (interior: `between: [a, b]`, `offset` along the
   shared wall from its west/north end, `type` door/sliding/opening, `swing`, `hinge`),
   `walls[]` (settings: `{between:[a,b]}` sorted or `{room, side}`, with `type`
-  wall/railing/glass/none, `loadBearing`, `thickness`, `material`).
+  wall/railing/glass/none, `loadBearing`, `thickness`, `material`, `beam` — a beam along the line
+  carries the floor above like a load-bearing wall, e.g. over an open passage).
 - `floors[].items[]`: furniture/appliances (`type` from `public/items.js`, `x`/`y` top-left of
   the footprint, `w` along the front, `d` depth, `h`, `rot` 0/90/180/270, optional `name`,
   `color`, `circuit`).
@@ -76,7 +77,8 @@ without overlaps or gaps.
   rates (cached in `rates-cache.json`).
 - `site[]`: plot, garage, terrace, pool, greenhouse, driveway, path… (`x`, `y`, `w`, `h`);
   garage/shed/greenhouse/carport/pergola also take `height` and `roof` (same fields as the house
-  roof, default flat); trees/conifers/bushes/hedges use w/h as the crown and `height`; a `slope` is ground rising to
+  roof, default flat); a carport/pergola with a flat `walkable` roof is a roof terrace on concrete
+  pillars (`posts` [[x, y]…] centres, else automatic; `attached` N/S/E/W = side resting on the house); trees/conifers/bushes/hedges use w/h as the crown and `height`; a `slope` is ground rising to
   `height` towards `up` (N/S/E/W); any site element can be raised by `base` (m), e.g. a sauna on a
   cellar roof. The plot
   sets `street` (N/S/E/W, for the site plan label) and can carry `points` (polygon) and driveway/path `points` + `width` (curved centre line); x/y/w/h

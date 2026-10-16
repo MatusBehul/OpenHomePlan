@@ -4,7 +4,7 @@ import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer
 import { roomColor, siteColor } from './catalog.js';
 import { bbox, exteriorEdges, interiorEdges, placeOpening, placeDoor, solidPieces, roundShape, roomOutline, curvedWalls, arcSegments, arcPoint, inRoom } from './geometry.js';
 import { analyzeStairs, sortedFloors, stairSteps } from './stairs.js';
-import { roofZones, siteRoof, openEdges, roofHeightAt, ROOF_COVERINGS, covering, isGableEnd, roundRoofs, atticRoof as atticRoofOf, atticZoneAt, atticRoofForOpening, kneeWall } from './roof.js';
+import { roofZones, siteRoof, openEdges, roofHeightAt, ROOF_COVERINGS, covering, isGableEnd, roundRoofs, atticRoof as atticRoofOf, atticZoneAt, atticRoofForOpening, kneeWall, isTerraceOnPosts, sitePosts, POST_SIZE, terraceRailEdges } from './roof.js';
 import { floorWalls } from './walls.js';
 import { ITEMS, itemInfo, footprint, itemPoint } from './items.js';
 import { tileOrigin } from './symbols.js';
@@ -298,7 +298,16 @@ export function create3D(container, store) {
       };
       for (const e of inner) {
         const key = `wall:${e.rooms.map((i) => floor.rooms[i].id).sort().join(':')}`;
-        const { type = 'wall', thickness = int, loadBearing } = props.get(key) || {};
+        const { type = 'wall', thickness = int, loadBearing, beam } = props.get(key) || {};
+        if (beam && !atticRoof) {
+          const len = e.horizontal ? e.x2 - e.x1 : e.y2 - e.y1;
+          const depth = 0.3; // visible below the ceiling
+          const b = e.horizontal
+            ? box(len, depth, 0.25, mat('#e2d9cb'), (e.x1 + e.x2) / 2, e0 + H - depth / 2, e.y1)
+            : box(0.25, depth, len, mat('#e2d9cb'), e.x1, e0 + H - depth / 2, (e.y1 + e.y2) / 2);
+          b.userData.target = `${floor.id}/${key}`;
+          if (W >= H - 0.01) g.add(b); // not in a cut-away below the cut height
+        }
         if (type === 'none') continue;
         const mine = doors.filter(({ p }) => p.edge === e);
         const from = e.horizontal ? e.x1 : e.y1;
@@ -1613,8 +1622,35 @@ export function create3D(container, store) {
       }
       case 'carport':
       case 'pergola': {
-        // posts at the corners (and mid-way on long sides), beams, then the roof
         const H = s.height ?? (s.type === 'carport' ? 2.4 : 2.5);
+        if (isTerraceOnPosts(s)) {
+          // a roof terrace on pillars: concrete pillars, a solid slab, paving and a railing
+          const concrete = mat('#d9d5cc');
+          const P = POST_SIZE(s);
+          for (const [x, z] of sitePosts(s)) g.add(box(P, H, P, concrete, x, H / 2, z));
+          const T = 0.3;
+          g.add(box(s.w, T, s.h, concrete, cx, H + T / 2, cz));
+          g.add(box(s.w - 0.04, 0.03, s.h - 0.04, mat('#cfc7b8'), cx, H + T + 0.015, cz));
+          // a darker fascia band so the slab edge reads from the street
+          g.add(box(s.w + 0.02, 0.12, s.h + 0.02, mat('#8f8a82'), cx, H + T - 0.06, cz));
+          const rail = mat('#2f3133');
+          const y0 = H + T;
+          for (const [x1, z1, x2, z2] of terraceRailEdges(s)) {
+            const len = Math.hypot(x2 - x1, z2 - z1);
+            const horiz = z1 === z2;
+            const mx = (x1 + x2) / 2;
+            const mz = (z1 + z2) / 2;
+            g.add(horiz ? box(len, 0.05, 0.06, rail, mx, y0 + 1.0, mz) : box(0.06, 0.05, len, rail, mx, y0 + 1.0, mz));
+            g.add(horiz ? box(len, 0.03, 0.04, rail, mx, y0 + 0.12, mz) : box(0.04, 0.03, len, rail, mx, y0 + 0.12, mz));
+            const n = Math.max(2, Math.round(len / 0.13));
+            for (let i = 0; i <= n; i++) {
+              const t = i / n;
+              g.add(box(0.025, 1.0, 0.025, rail, x1 + (x2 - x1) * t, y0 + 0.5, z1 + (z2 - z1) * t));
+            }
+          }
+          break;
+        }
+        // posts at the corners (and mid-way on long sides), beams, then the roof
         const post = 0.15;
         const wood = mat(s.type === 'carport' ? '#6f6a63' : '#8a6a48');
         const xs = [s.x + post / 2, ...(s.w > 5 ? [cx] : []), s.x + s.w - post / 2];

@@ -40,7 +40,7 @@ const SHEETS = {
 };
 
 const LEGENDS = {
-  plan: [['#23262b', 5, 'Load-bearing / exterior wall'], ['#8a8a8a', 3, 'Partition'], ['#555', 1, 'Railing'], ['#4a90d9', 2, 'Glass']],
+  plan: [['#23262b', 5, 'Load-bearing / exterior wall'], ['#8a8a8a', 3, 'Partition'], ['#555', 1, 'Railing'], ['#4a90d9', 2, 'Glass'], ['#a0591c', 3, 'Beam over an opening']],
   electrical: [['S', 'Socket'], ['K', 'Counter socket'], ['3~', '400 V'], ['A', 'Appliance outlet'], ['⊗', 'Ceiling light'], ['W', 'Wall light'], ['/', 'Switch'], ['RB', 'Distribution board'], ['D', 'Data']],
   water: [['C', 'Cold water'], ['H', 'Hot water'], ['▼', 'Drain'], ['WM', 'Water meter'], ['G', 'Gas'], ['GM', 'Gas meter']],
 };

@@ -83,3 +83,19 @@ test('U-shaped stairs fit where a straight flight does not', () => {
   const straight = analyzeStairs(house, house.floors[0], { ...stair, shape: undefined });
   assert.ok(straight.issues.some((i) => i.code === 'too-short'));
 });
+
+test('a beam over an open passage carries the slab like a load-bearing wall', async () => {
+  const { structureIssues } = await mod('structure.js');
+  const room = (id, y) => ({ id, name: id, type: 'living', x: 0, y, w: 7, h: 4 });
+  const h = {
+    floors: [
+      { id: 'g', name: 'G', elevation: 0, height: 3, rooms: [room('a', 0), room('b', 4)], doors: [], openings: [], walls: [{ between: ['a', 'b'], type: 'none' }] },
+      { id: 'u', name: 'U', elevation: 3, height: 3, rooms: [{ id: 'c', name: 'c', type: 'bedroom', x: 0, y: 0, w: 7, h: 8 }], doors: [], openings: [] },
+    ],
+    site: [],
+  };
+  assert.equal(structureIssues(h).length, 2, 'open: both rooms span 7 m');
+  h.floors[0].walls[0].beam = true;
+  assert.deepEqual(structureIssues(h), []);
+  assert.ok(estimate(h).lines.some((l) => l.key === 'beam' || l.id === 'beam'), 'the beam is priced');
+});

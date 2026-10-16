@@ -21,7 +21,8 @@ function bearingSegments(house, floor) {
       return { horizontal, coord: horizontal ? g.mid[1] : g.mid[0], from: Math.min(a, b) - 0.02, to: Math.max(a, b) + 0.02 };
     }),
   );
-  return [...outer, ...inner].filter((w) => w.props.loadBearing && w.props.type === 'wall').concat(curved);
+  // a beam over an opening carries the slab like a load-bearing wall does
+  return [...outer, ...inner].filter((w) => (w.props.loadBearing && w.props.type === 'wall') || w.props.beam).concat(curved);
 }
 
 // Distance between the nearest load-bearing walls on either side of a point, along one axis.
@@ -80,7 +81,7 @@ export function structureIssues(house) {
           issues.push({
             floor,
             target: `${floor.id}/${r.id}`,
-            text: `${r.name}: the slab above spans ${best.toFixed(1)} m between load-bearing walls (max ${rules.maxSlabSpan} m). Make a wall load-bearing or plan a beam.`,
+            text: `${r.name}: the slab above spans ${best.toFixed(1)} m between load-bearing walls (max ${rules.maxSlabSpan} m). Make a wall load-bearing, or select an open wall and tick “Beam above”.`,
           });
       }
     }

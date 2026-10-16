@@ -681,7 +681,10 @@ function renderSelection() {
         </select></label></div>`
       : ''}
     ${kind === 'site' && item.type in SITE_ROOFED
-      ? `<div class="subhead">Roof</div><div class="sub">${esc(roofText(siteRoof(item)))}</div>${roofFieldsHtml(item.roof, SITE_ROOF_DEFAULT)}`
+      ? `<div class="subhead">Roof</div><div class="sub">${esc(roofText(siteRoof(item)))}</div>${roofFieldsHtml(item.roof, SITE_ROOF_DEFAULT, { withWalkable: ['carport', 'pergola'].includes(item.type) })}${['carport', 'pergola'].includes(item.type) && item.roof?.walkable
+          ? `<div class="fields"><label class="wide">Rests on the house on<select data-key="attached"><option value="">no side (pillars all round)</option>${[['N', 'North'], ['S', 'South'], ['E', 'East'], ['W', 'West']].map(([v, l]) => `<option value="${v}" ${v === item.attached ? 'selected' : ''}>${l} side</option>`).join('')}</select></label></div>
+             <div class="sub">A walkable roof: a concrete slab on 30 cm pillars with a railing on the open sides. Pillars go round the edges at most 3.5 m apart, or exactly where <code>posts</code> lists them in house.json.</div>`
+          : ''}`
       : ''}
     ${kind === 'room' && item.type === 'stairs' ? stairsHtml(floor, item) : ''}
     ${kind === 'room' ? roomOpeningsHtml(floor, item) : ''}
@@ -710,7 +713,8 @@ function renderSelection() {
           const old = [labels[item.type]?.label, 'Garden bed', 'Shed', 'New room'];
           if (old.includes(item.name)) item.name = labels[input.value]?.label?.replace(/ \(.*\)$/, '') || item.name;
         }
-        item[key] = input.value.trim() || item[key];
+        if (key === 'attached' && !input.value) delete item.attached;
+        else item[key] = input.value.trim() || item[key];
       }
       store.changed();
     });
@@ -1405,6 +1409,7 @@ function renderWallPanel(panel, t) {
         .map(([k, v]) => `<option value="${k}" ${k === p.type ? 'selected' : ''} ${p.loadBearing && k !== 'wall' ? 'disabled' : ''}>${esc(v)}</option>`)
         .join('')}</select></label>`}
       <label class="wide check"><input type="checkbox" data-wkey="loadBearing" ${p.loadBearing ? 'checked' : ''}> Load-bearing (carries floors or roof above)</label>
+      ${ext || p.loadBearing ? '' : `<label class="wide check"><input type="checkbox" data-wkey="beam" ${p.beam ? 'checked' : ''}> Beam above (carries the floor above across this line, e.g. over an open passage)</label>`}
       ${ext || p.type !== 'wall' ? '' : `<label>Thickness (m)<input type="number" step="0.025" data-wkey="thickness" value="${fmt(p.thickness, 3)}"></label>`}
       ${p.type === 'wall' ? `<label class="${ext ? 'wide' : ''}">Material<select data-wkey="material">${materials
         .map((m) => `<option ${m === p.material ? 'selected' : ''}>${esc(m)}</option>`)
@@ -1452,8 +1457,8 @@ function renderWallPanel(panel, t) {
   };
   $('#wall-line', panel).onclick = () => {
     const line = sameLine(store.house, floor, wall);
-    const { type, loadBearing, thickness, material } = wall.props;
-    for (const w of line) setWallProps(store.house, floor, w.desc, ext ? { loadBearing, material } : { type, loadBearing, thickness, material });
+    const { type, loadBearing, thickness, material, beam } = wall.props;
+    for (const w of line) setWallProps(store.house, floor, w.desc, ext ? { loadBearing, material } : { type, loadBearing, thickness, material, beam });
     store.changed();
     store.emit('selection');
     toast(`Applied to ${line.length} wall segment${line.length > 1 ? 's' : ''} on this line`);

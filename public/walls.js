@@ -2,7 +2,8 @@
 // floor.walls keyed by what the wall separates:
 //   interior: { between: [roomA, roomB], ... }   (ids sorted)
 //   exterior: { room, side: 'N'|'S'|'E'|'W', ... }
-// Properties: type ('wall' | 'railing' | 'glass' | 'none'), loadBearing, thickness, material.
+// Properties: type ('wall' | 'railing' | 'glass' | 'none'), loadBearing, thickness, material,
+// beam (true: a beam along this line carries the floor above, e.g. over an open passage).
 import { exteriorEdges, interiorEdges, round } from './geometry.js';
 
 export const WALL_TYPES = {
@@ -48,13 +49,13 @@ function findEntry(floor, desc) {
 
 export function defaultWall(house, floor, desc) {
   const thick = house.wall || {};
-  if (desc.exterior) return { type: 'wall', loadBearing: true, thickness: thick.exterior ?? 0.4, material: thick.exteriorMaterial || 'Ceramic block 30 cm' };
+  if (desc.exterior) return { type: 'wall', loadBearing: true, thickness: thick.exterior ?? 0.4, material: thick.exteriorMaterial || 'Ceramic block 30 cm', beam: false };
   const rooms = desc.between.map((id) => floor.rooms.find((r) => r.id === id));
   const voidRoom = rooms.find((r) => r?.type === 'void');
   const other = rooms.find((r) => r && r !== voidRoom);
   // around a stair void: a railing towards circulation, a real wall towards rooms
   const type = voidRoom && other && CIRCULATION.has(other.type) ? 'railing' : 'wall';
-  return { type, loadBearing: false, thickness: thick.interior ?? 0.15, material: 'Ceramic block 11.5 cm' };
+  return { type, loadBearing: false, thickness: thick.interior ?? 0.15, material: 'Ceramic block 11.5 cm', beam: false };
 }
 
 // Effective properties (defaults overlaid with any stored settings).

@@ -6,7 +6,7 @@ import {
 import { analyzeStairs, stairSteps } from './stairs.js';
 import { isHinged } from './model.js';
 import { isShaped, SHAPED, svgPath, measure, smooth, translate, syncBox } from './shapes.js';
-import { roofZones, ROOF_TYPES, openEdges } from './roof.js';
+import { roofZones, ROOF_TYPES, openEdges, isTerraceOnPosts, sitePosts, POST_SIZE, terraceRailEdges } from './roof.js';
 import { facadeSettings, shutterWidths } from './facade.js';
 import { floorWalls, wallAt } from './walls.js';
 import { structureIssues } from './structure.js';
@@ -66,6 +66,7 @@ export function createPlan(container, store, opts = {}) {
       <span><i style="background:#555;height:1px"></i>Railing</span>
       <span><i style="background:#4a90d9;height:2px"></i>Glass</span>
       <span><i style="border-top:1px dotted #999;height:0"></i>Open</span>
+      <span><i style="border-top:3px dashed #a0591c;height:0"></i>Beam</span>
     </div>
     <svg class="scalebar" style="position:absolute;right:14px;bottom:10px;height:26px;width:140px;pointer-events:none"></svg>`}`;
   const svg = container.querySelector('svg');
@@ -252,15 +253,19 @@ export function createPlan(container, store, opts = {}) {
     }
     if (s.type === 'carport' || s.type === 'pergola') {
       // a roof on posts: dashed roof outline, posts, and slats for a pergola
-      const post = 0.15;
-      const xs = [s.x + post / 2, ...(s.w > 5 ? [s.x + s.w / 2] : []), s.x + s.w - post / 2];
-      const ys = [s.y + post / 2, ...(s.h > 5 ? [s.y + s.h / 2] : []), s.y + s.h - post / 2];
-      let inner = `<rect x="${n(s.x)}" y="${n(s.y)}" width="${n(s.w)}" height="${n(s.h)}" fill="${siteColor(s.type)}" fill-opacity=".35" stroke="#6b6259" stroke-width="${n(1.5 * px)}" stroke-dasharray="${n(8 * px)} ${n(4 * px)}"/>`;
-      if (s.type === 'pergola' && (!s.roof || s.roof.type === 'flat'))
+      const post = POST_SIZE(s);
+      const terrace = isTerraceOnPosts(s);
+      let inner = terrace
+        ? `<rect x="${n(s.x)}" y="${n(s.y)}" width="${n(s.w)}" height="${n(s.h)}" fill="url(#planks)" fill-opacity=".55" stroke="#6b6259" stroke-width="${n(1.5 * px)}" stroke-dasharray="${n(8 * px)} ${n(4 * px)}"/>` +
+          terraceRailEdges(s).map(([x1, y1, x2, y2]) => `<line x1="${n(x1)}" y1="${n(y1)}" x2="${n(x2)}" y2="${n(y2)}" stroke="#2f3133" stroke-width="${n(2 * px)}"/>`).join('')
+        : `<rect x="${n(s.x)}" y="${n(s.y)}" width="${n(s.w)}" height="${n(s.h)}" fill="${siteColor(s.type)}" fill-opacity=".35" stroke="#6b6259" stroke-width="${n(1.5 * px)}" stroke-dasharray="${n(8 * px)} ${n(4 * px)}"/>`;
+      if (terrace) {
+        // a roof terrace over the space below: no slats or cross
+      } else if (s.type === 'pergola' && (!s.roof || s.roof.type === 'flat'))
         for (let x = s.x + 0.4; x < s.x + s.w - 0.2; x += 0.4) inner += `<line x1="${n(x)}" y1="${n(s.y)}" x2="${n(x)}" y2="${n(s.y + s.h)}" stroke="#a08a6a" stroke-width="${n(px)}"/>`;
       else inner += `<line x1="${n(s.x)}" y1="${n(s.y)}" x2="${n(s.x + s.w)}" y2="${n(s.y + s.h)}" stroke="#8a8278" stroke-width="${n(px)}" stroke-dasharray="${n(4 * px)} ${n(3 * px)}"/><line x1="${n(s.x + s.w)}" y1="${n(s.y)}" x2="${n(s.x)}" y2="${n(s.y + s.h)}" stroke="#8a8278" stroke-width="${n(px)}" stroke-dasharray="${n(4 * px)} ${n(3 * px)}"/>`;
-      for (const x of xs) for (const y of ys) if (x === xs[0] || x === xs[xs.length - 1] || y === ys[0] || y === ys[ys.length - 1]) inner += `<rect x="${n(x - post / 2)}" y="${n(y - post / 2)}" width="${post}" height="${post}" fill="#4a4a4a"/>`;
-      const lines = [{ text: s.name, size: 11, weight: 600 }, { text: `${fmtArea(s.w * s.h)} m² · ${fmt(s.w)} × ${fmt(s.h)}`, size: 10, color: '#555' }];
+      for (const [x, y] of sitePosts(s)) inner += `<rect x="${n(x - post / 2)}" y="${n(y - post / 2)}" width="${post}" height="${post}" fill="#4a4a4a"/>`;
+      const lines = [{ text: s.name, size: 11, weight: 600 }, { text: `${fmtArea(s.w * s.h)} m² · ${fmt(s.w)} × ${fmt(s.h)}${terrace ? ` · roof terrace at +${fmt((s.height ?? 2.4) + 0.3)} m` : ''}`, size: 10, color: '#555' }];
       return `<g class="site-el" data-target="${target}">${inner}${labelBlock(s.x + s.w / 2, s.y + s.h / 2, lines, px, s.w, s.h)}${commentMarker(s, target, px)}</g>`;
     }
     if (s.type === 'plot') {
@@ -661,6 +666,10 @@ export function createPlan(container, store, opts = {}) {
         else if (type === 'glass') wallParts.push(line('#4a90d9', 0.06), line('#fff', 0.02));
         else if (type === 'none') wallParts.push(line('#999', px, `stroke-dasharray="${n(2 * px)} ${n(3 * px)}"`));
         else wallParts.push(line(loadBearing ? '#23262b' : '#8a8a8a', thickness, `stroke-linecap="${spans.length ? 'butt' : 'square'}"`));
+      }
+      if (w.props.beam) {
+        const [x1, y1, x2, y2] = seg(w, w.from, w.to);
+        wallParts.push(`<line x1="${n(x1)}" y1="${n(y1)}" x2="${n(x2)}" y2="${n(y2)}" stroke="#a0591c" stroke-opacity=".75" stroke-width="${n(Math.max(0.12, 3 * px))}" stroke-dasharray="${n(10 * px)} ${n(3 * px)} ${n(2 * px)} ${n(3 * px)}"/>`);
       }
     }
     parts.push(`<g class="label">${wallParts.join('')}</g>`);

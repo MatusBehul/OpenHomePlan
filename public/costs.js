@@ -9,7 +9,7 @@
 import { totals, exteriorEdges, interiorEdges, placeDoor, placeOpening, curvedWalls } from './geometry.js';
 import { floorWalls } from './walls.js';
 import { sortedFloors } from './stairs.js';
-import { roofZones, roofArea, roofParts, openEdges, ROOF_COVERINGS, covering, atticRoof, atticRoofForOpening, kneeWall, isGableEnd, roundRoofs, coneArea } from './roof.js';
+import { roofZones, roofArea, roofParts, openEdges, ROOF_COVERINGS, covering, atticRoof, atticRoofForOpening, kneeWall, isGableEnd, roundRoofs, coneArea, isTerraceOnPosts, terraceRailEdges } from './roof.js';
 import { ITEMS, roomAt } from './items.js';
 import { measure } from './shapes.js';
 import { facadeQuantities } from './facade.js';
@@ -31,6 +31,7 @@ export const DEFAULT_PRICES = {
   'wall-exterior': ['Exterior walls incl. insulation & render', 'm²', 190, 'shell'],
   'wall-bearing': ['Interior load-bearing walls', 'm²', 95, 'shell'],
   'wall-partition': ['Partition walls', 'm²', 55, 'shell'],
+  beam: ['Beams over openings (steel or reinforced concrete, incl. bearings)', 'm', 260, 'shell'],
   'wall-glass': ['Glass partitions', 'm²', 280, 'shell'],
   railing: ['Railings', 'm', 220, 'shell'],
   slab: ['Floor slabs between storeys', 'm²', 120, 'shell'],
@@ -87,6 +88,7 @@ export const DEFAULT_PRICES = {
   'site-shed': ['Garden shed', 'm²', 420, 'site'],
   'site-garden': ['Garden beds', 'm²', 20, 'site'],
   'site-carport': ['Carport', 'm²', 380, 'site'],
+  'site-terrace-on-posts': ['Roof terrace on pillars (RC slab and pillars, waterproofing, paving)', 'm²', 720, 'site'],
   'site-pergola': ['Pergola / terrace cover', 'm²', 240, 'site'],
   'site-tree': ['Trees (planted, ~3 m tall)', 'pc', 180, 'site'],
   'site-conifer': ['Conifers', 'pc', 120, 'site'],
@@ -217,7 +219,8 @@ export function estimate(house) {
     }
     for (const w of floorWalls(house, floor).inner) {
       const len = w.to - w.from;
-      const { type, loadBearing } = w.props;
+      const { type, loadBearing, beam } = w.props;
+      if (beam) add('beam', len);
       if (type === 'none') continue;
       if (type === 'railing') add('railing', len);
       else {
@@ -362,7 +365,10 @@ export function estimate(house) {
     // plants are counted per piece, hedges per metre, everything else per m²
     const qty = el.type === 'plot' ? m.perimeter : unit === 'pc' ? 1 : unit === 'm' ? Math.max(el.w, el.h) : m.area;
     if (el.type === 'plot') add('fence', qty);
-    else if (DEFAULT_PRICES[`site-${el.type}`])
+    else if (isTerraceOnPosts(el)) {
+      add('site-terrace-on-posts', m.area, { id: `site:${el.id}`, label: el.name, priceKey: 'site-terrace-on-posts' });
+      add('railing', terraceRailEdges(el).reduce((a, [x1, y1, x2, y2]) => a + Math.hypot(x2 - x1, y2 - y1), 0));
+    } else if (DEFAULT_PRICES[`site-${el.type}`])
       add(`site-${el.type}`, qty, ['tree', 'conifer', 'bush', 'hedge'].includes(el.type) ? {} : { id: `site:${el.id}`, label: el.name, priceKey: `site-${el.type}` });
   }
 
