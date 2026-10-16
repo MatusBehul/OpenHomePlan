@@ -117,6 +117,7 @@ export function buildBrief(house, { comments = [], briefText = '', date = new Da
       f.rustication ? `Rusticated render (bosáž) on the ground floor (≈ ${Math.round(q.rusticationM2)} m²).` : '',
       q.shutters ? `${q.shutters} pairs of shutters.` : '',
       q.juliet ? `${q.juliet} Juliet balconies (wrought iron).` : '',
+      q.balconies ? `${q.balconies} small cantilevered balcon${q.balconies > 1 ? 'ies' : 'y'} (${q.balconyM2.toFixed(1)} m²).` : '',
       q.surround ? `${q.surround} stone-look window surrounds with keystones.` : '',
     ].filter(Boolean);
     if (items.length > 1 || house.facade) S('Facade', L(items));

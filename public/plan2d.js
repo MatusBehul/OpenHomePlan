@@ -264,7 +264,8 @@ export function createPlan(container, store, opts = {}) {
       } else if (s.type === 'pergola' && (!s.roof || s.roof.type === 'flat'))
         for (let x = s.x + 0.4; x < s.x + s.w - 0.2; x += 0.4) inner += `<line x1="${n(x)}" y1="${n(s.y)}" x2="${n(x)}" y2="${n(s.y + s.h)}" stroke="#a08a6a" stroke-width="${n(px)}"/>`;
       else inner += `<line x1="${n(s.x)}" y1="${n(s.y)}" x2="${n(s.x + s.w)}" y2="${n(s.y + s.h)}" stroke="#8a8278" stroke-width="${n(px)}" stroke-dasharray="${n(4 * px)} ${n(3 * px)}"/><line x1="${n(s.x + s.w)}" y1="${n(s.y)}" x2="${n(s.x)}" y2="${n(s.y + s.h)}" stroke="#8a8278" stroke-width="${n(px)}" stroke-dasharray="${n(4 * px)} ${n(3 * px)}"/>`;
-      for (const [x, y] of sitePosts(s)) inner += `<rect x="${n(x - post / 2)}" y="${n(y - post / 2)}" width="${post}" height="${post}" fill="#4a4a4a"/>`;
+      for (const [x, y] of sitePosts(s))
+        inner += terrace && s.postStyle === 'column' ? `<circle cx="${n(x)}" cy="${n(y)}" r="${n(post / 2)}" fill="#4a4a4a"/>` : `<rect x="${n(x - post / 2)}" y="${n(y - post / 2)}" width="${post}" height="${post}" fill="#4a4a4a"/>`;
       const lines = [{ text: s.name, size: 11, weight: 600 }, { text: `${fmtArea(s.w * s.h)} m² · ${fmt(s.w)} × ${fmt(s.h)}${terrace ? ` · roof terrace at +${fmt((s.height ?? 2.4) + 0.3)} m` : ''}`, size: 10, color: '#555' }];
       return `<g class="site-el" data-target="${target}">${inner}${labelBlock(s.x + s.w / 2, s.y + s.h / 2, lines, px, s.w, s.h)}${commentMarker(s, target, px)}</g>`;
     }
@@ -410,7 +411,13 @@ export function createPlan(container, store, opts = {}) {
         parts.push(`<line x1="${n(x1)}" y1="${n(y1)}" x2="${n(x2)}" y2="${n(y2)}" stroke="${col}" stroke-width="0.06"/>`);
       }
     }
-    if (o.juliet) {
+    if (o.balcony > 0) {
+      const D = o.balcony;
+      const Wb = o.balconyWidth || Math.max(p.to - p.from + 0.8, 1.6);
+      const mid = (p.from + p.to) / 2;
+      const pts = [faceAt(mid - Wb / 2, 0), faceAt(mid - Wb / 2, D), faceAt(mid + Wb / 2, D), faceAt(mid + Wb / 2, 0)];
+      parts.push(`<path d="M${pts.map(([x, y]) => `${n(x)} ${n(y)}`).join(' L')}" fill="#e6dccb" fill-opacity=".7" stroke="#26282a" stroke-width="${n(1.6 * px)}"/>`);
+    } else if (o.juliet) {
       const [x1, y1] = faceAt(p.from - 0.1, 0.2);
       const [x2, y2] = faceAt(p.to + 0.1, 0.2);
       const [bx1, by1] = faceAt(p.from - 0.1, 0);

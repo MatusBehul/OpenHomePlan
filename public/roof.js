@@ -183,12 +183,28 @@ export const SITE_ROOFED = { garage: 3.0, shed: 2.5, greenhouse: 2.6, carport: 2
 // railing on its open sides. `attached` lists the sides that rest on the house or join another
 // deck (e.g. 'S', or 'WN' for a balcony along a west wall that meets a terrace in the north).
 export const isTerraceOnPosts = (s) => (s.type === 'carport' || s.type === 'pergola') && s.roof?.type === 'flat' && !!s.roof.walkable;
-export const POST_SIZE = (s) => (isTerraceOnPosts(s) ? 0.3 : 0.15);
+// pillar styles of a terrace on posts: plain concrete, a round column, or stone piers with arches
+export const POST_STYLES = { square: 'Concrete pillars', column: 'Round columns', arcade: 'Stone arcade (piers and arches)' };
+export const RAILING_STYLES = { metal: 'Metal railing', balustrade: 'Stone balustrade' };
+export const POST_SIZE = (s) => (!isTerraceOnPosts(s) ? 0.15 : s.postStyle === 'arcade' ? 0.45 : s.postStyle === 'column' ? 0.35 : 0.3);
+
+// Hand-placed posts are stored with the outline they were placed in (`postsBox`); when the
+// element is moved or resized they follow it: posts near an edge keep their distance to that
+// edge, the others keep their proportion.
+function followBox(posts, from, to) {
+  const map = (v, a0, a1, b0, b1) => {
+    if (Math.abs(v - a0) <= 0.6) return b0 + (v - a0);
+    if (Math.abs(a1 - v) <= 0.6) return b1 - (a1 - v);
+    return a1 === a0 ? b0 : b0 + ((v - a0) * (b1 - b0)) / (a1 - a0);
+  };
+  return posts.map(([x, y]) => [map(x, from.x, from.x + from.w, to.x, to.x + to.w), map(y, from.y, from.y + from.h, to.y, to.y + to.h)]);
+}
+export const withPostsBox = (s) => ({ ...s, postsBox: { x: s.x, y: s.y, w: s.w, h: s.h } });
 
 // Post centres: `s.posts` ([[x, y], …]) if given, else round the edges, at most `max` apart,
 // leaving out the attached side.
 export function sitePosts(s, max = isTerraceOnPosts(s) ? 3.5 : 5) {
-  if (Array.isArray(s.posts) && s.posts.length) return s.posts.map(([x, y]) => [x, y]);
+  if (Array.isArray(s.posts) && s.posts.length) return s.postsBox ? followBox(s.posts, s.postsBox, s) : s.posts.map(([x, y]) => [x, y]);
   const p = POST_SIZE(s) / 2;
   const along = (a, b) => {
     const n = Math.max(1, Math.ceil((b - a) / max));

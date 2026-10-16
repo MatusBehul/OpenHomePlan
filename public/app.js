@@ -8,7 +8,7 @@ import { resolveTarget, roomName, doorName, openingName, FACADES, OPENING_TYPES,
 import { analyzeStairs, fixStairs, allStairIssues, sortedFloors } from './stairs.js';
 import { WALL_TYPES, MATERIALS, floorWalls, setWallProps, resetWall, pruneWalls, sameLine } from './walls.js';
 import { structureIssues, structureRules } from './structure.js';
-import { ROOF_TYPES, roofInfo, siteRoof, roofText, SITE_ROOFED, SITE_ROOF_DEFAULT, ROOF_DEFAULTS, roofZones, toRoofZones, syncRoofZones, ROOF_COVERINGS, covering } from './roof.js';
+import { ROOF_TYPES, roofInfo, siteRoof, roofText, SITE_ROOFED, SITE_ROOF_DEFAULT, ROOF_DEFAULTS, roofZones, toRoofZones, syncRoofZones, ROOF_COVERINGS, covering, POST_STYLES, RAILING_STYLES } from './roof.js';
 import { collectIssues } from './issues.js';
 import { ITEMS, ITEM_CATEGORIES, itemInfo, newItem, rotateItem, footprint, roomAt } from './items.js';
 import { POINT_KINDS, GROUPS, generateUtilities, generateCircuits, loadSummary, pointGroup } from './utilities.js';
@@ -683,7 +683,9 @@ function renderSelection() {
     ${kind === 'site' && item.type in SITE_ROOFED
       ? `<div class="subhead">Roof</div><div class="sub">${esc(roofText(siteRoof(item)))}</div>${roofFieldsHtml(item.roof, SITE_ROOF_DEFAULT, { withWalkable: ['carport', 'pergola'].includes(item.type) })}${['carport', 'pergola'].includes(item.type) && item.roof?.walkable
           ? `<div class="fields"><label class="wide">Rests on the house on<select data-key="attached"><option value="">no side (pillars all round)</option>${[['N', 'North'], ['S', 'South'], ['E', 'East'], ['W', 'West'], ...(item.attached?.length > 1 ? [[item.attached, `${item.attached.split('').join(' + ')} sides`]] : [])].map(([v, l]) => `<option value="${v}" ${v === item.attached ? 'selected' : ''}>${l}${v.length === 1 ? ' side' : ''}</option>`).join('')}</select></label></div>
-             <div class="sub">A walkable roof: a concrete slab on 30 cm pillars with a railing on the open sides. Pillars go round the edges at most 3.5 m apart, or exactly where <code>posts</code> lists them in house.json.</div>`
+             <div class="fields"><label>Pillars<select data-key="postStyle">${Object.entries(POST_STYLES).map(([v, l]) => `<option value="${v}" ${v === (item.postStyle || 'square') ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select></label>
+               <label>Railing<select data-key="railing">${Object.entries(RAILING_STYLES).map(([v, l]) => `<option value="${v}" ${v === (item.railing || 'metal') ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select></label></div>
+             <div class="sub">A walkable roof: a slab on pillars with a railing on the open sides. Pillars go round the edges at most 3.5 m apart, or where <code>posts</code> lists them in house.json (they follow the terrace when it is moved or resized).</div>`
           : ''}`
       : ''}
     ${kind === 'room' && item.type === 'stairs' ? stairsHtml(floor, item) : ''}
@@ -1336,6 +1338,7 @@ function renderOpeningPanel(panel, t, focused) {
               ? ''
               : `<label class="wide check"><input type="checkbox" data-detail="shutters" ${item.shutters ? 'checked' : ''}> Shutters</label>
                  <label class="wide check"><input type="checkbox" data-detail="juliet" ${item.juliet ? 'checked' : ''}> Juliet balcony (iron railing in front)</label>
+                 ${item.type !== 'window' && (floor.elevation ?? 0) > 1 ? `<label>Balcony depth (m, 0 = none)<input type="number" step="0.1" min="0" max="2.5" data-balcony="balcony" value="${fmt(item.balcony ?? 0)}"></label>` : ''}
                  <label class="wide check"><input type="checkbox" data-detail="surround" ${item.surround ? 'checked' : ''}> Stone surround with keystone</label>`)
       }
     </div>
@@ -1375,6 +1378,17 @@ function renderOpeningPanel(panel, t, focused) {
     });
   });
   if (focused) panel.querySelector(`[data-key="${focused}"]`)?.focus();
+  panel.querySelectorAll('[data-balcony]').forEach((input) =>
+    input.addEventListener('change', () => {
+      const v = Math.min(2.5, Math.max(0, round(Number(input.value) || 0)));
+      if (v > 0) {
+        item.balcony = v;
+        delete item.juliet; // a real balcony replaces the Juliet railing
+      } else delete item.balcony;
+      store.changed();
+      store.emit('selection');
+    }),
+  );
   panel.querySelectorAll('[data-detail]').forEach((box) =>
     box.addEventListener('change', () => {
       if (box.checked) item[box.dataset.detail] = true;

@@ -47,10 +47,9 @@ body { margin: 0; background: #e9e6e0; }
 .brief table.summary th { background: none; padding-right: 6mm; }
 .brief pre { white-space: pre-wrap; font: inherit; background: #f8f7f4; padding: 3mm; border-radius: 1mm; }
 
-@page sheet { size: A3 landscape; margin: 0; }
-@page sheetA4 { size: A4 landscape; margin: 0; }
+/* the sheets' paper size is set by print.js as a plain @page rule (named pages alone are ignored
+   by some browsers, which then print an A3 sheet on A4 and cut it) */
 @page brief { size: A4 portrait; margin: 0; }
-.sheet.A4 { page: sheetA4; }
 @media print {
   body { background: #fff; }
   .toolbar, .hint { display: none; }

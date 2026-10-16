@@ -979,7 +979,24 @@ export function create3D(container, store) {
           for (let y = e0 + sill + 0.25; y < e0 + head - 0.1; y += 0.32) at(mid, 0.055, y, y + 0.03, sw - 0.06, 0.02, mat('#4f5d63'));
         }
       }
-      if (o.juliet) {
+      if (o.balcony > 0) {
+        // a small cantilevered balcony: slab with a stone edge, paving, iron railing on three sides
+        const iron = mat('#26282a');
+        const D = o.balcony;
+        const Wb = o.balconyWidth || Math.max(w + 0.8, 1.6);
+        const mid = (p.from + p.to) / 2;
+        const y0 = e0;
+        at(mid, D / 2, y0 - 0.2, y0, Wb, D, trim);
+        at(mid, D / 2, y0, y0 + 0.03, Wb - 0.06, D - 0.03, mat('#cfc7b8'));
+        at(mid, D - 0.03, y0 + 0.98, y0 + 1.02, Wb, 0.05, iron);
+        at(mid, D - 0.03, y0 + 0.1, y0 + 0.13, Wb, 0.03, iron);
+        for (let a = mid - Wb / 2 + 0.02; a <= mid + Wb / 2 - 0.01; a += 0.12) at(a, D - 0.03, y0, y0 + 1.0, 0.018, 0.018, iron);
+        for (const a of [mid - Wb / 2 + 0.02, mid + Wb / 2 - 0.02]) {
+          at(a, D / 2, y0 + 0.98, y0 + 1.02, 0.04, D, iron);
+          at(a, D / 2, y0 + 0.1, y0 + 0.13, 0.03, D, iron);
+          for (let c = 0.12; c < D - 0.05; c += 0.12) at(a, c, y0, y0 + 1.0, 0.018, 0.018, iron);
+        }
+      } else if (o.juliet) {
         const iron = mat('#26282a');
         const depth = 0.22;
         const y0 = e0 + sill;
@@ -1624,17 +1641,90 @@ export function create3D(container, store) {
       case 'pergola': {
         const H = s.height ?? (s.type === 'carport' ? 2.4 : 2.5);
         if (isTerraceOnPosts(s)) {
-          // a roof terrace on pillars: concrete pillars, a solid slab, paving and a railing
+          // a roof terrace on pillars: pillars (concrete, columns or an arcade), a solid slab,
+          // paving and a railing (metal or a stone balustrade)
+          const F = facadeSettings(store.house);
+          const stone = mat(F.trim);
           const concrete = mat('#d9d5cc');
+          const style = s.postStyle || 'square';
           const P = POST_SIZE(s);
-          for (const [x, z] of sitePosts(s)) g.add(box(P, H, P, concrete, x, H / 2, z));
           const T = 0.3;
-          g.add(box(s.w, T, s.h, concrete, cx, H + T / 2, cz));
+          const posts = sitePosts(s);
+          for (const [x, z] of posts) {
+            if (style === 'column') {
+              const shaft = new THREE.Mesh(new THREE.CylinderGeometry(P * 0.42, P * 0.48, H - 0.36, 20), stone);
+              shaft.position.set(x, H / 2, z);
+              shaft.castShadow = true;
+              g.add(shaft, box(P + 0.06, 0.18, P + 0.06, stone, x, 0.09, z), box(P + 0.1, 0.18, P + 0.1, stone, x, H - 0.09, z));
+            } else if (style === 'arcade') {
+              g.add(box(P, H, P, mat(F.render), x, H / 2, z));
+              g.add(box(P + 0.08, 0.25, P + 0.08, stone, x, 0.125, z)); // plinth
+            } else g.add(box(P, H, P, concrete, x, H / 2, z));
+          }
+          if (style === 'arcade') {
+            // round (or flattened) arches between neighbouring piers along every open side
+            for (const [x1, z1, x2, z2] of terraceRailEdges(s)) {
+              const horiz = z1 === z2;
+              const line = horiz ? z1 : x1;
+              const on = posts.filter(([x, z]) => Math.abs((horiz ? z : x) - line) < 0.5).map(([x, z]) => (horiz ? x : z)).sort((a, b) => a - b);
+              for (let i = 0; i + 1 < on.length; i++) {
+                const a = on[i] + P / 2;
+                const L = on[i + 1] - P / 2 - a;
+                if (L < 0.4) continue;
+                const top = H - 0.02;
+                const rise = Math.min(L / 2, top - 1.9);
+                const spring = top - 0.22 - rise;
+                const shape = new THREE.Shape();
+                shape.moveTo(0, spring);
+                shape.lineTo(0, top);
+                shape.lineTo(L, top);
+                shape.lineTo(L, spring);
+                shape.absellipse(L / 2, spring, L / 2, rise, 0, Math.PI, false);
+                const geo = new THREE.ExtrudeGeometry(shape, { depth: P * 0.8, bevelEnabled: false });
+                const m = new THREE.Mesh(geo, mat(F.render, { side: THREE.DoubleSide }));
+                // the profile is drawn in its own x/y plane: lay it along the side
+                if (horiz) m.position.set(a, 0, line - (P * 0.8) / 2);
+                else { m.rotation.y = -Math.PI / 2; m.position.set(line - (P * 0.8) / 2, 0, a); }
+                m.castShadow = true;
+                g.add(m);
+                // impost mouldings where the arch springs, and a keystone
+                const im = (pos) => (horiz ? box(0.12, 0.1, P + 0.06, stone, pos, spring, line) : box(P + 0.06, 0.1, 0.12, stone, line, spring, pos));
+                g.add(im(a), im(a + L));
+                g.add(horiz ? box(0.22, 0.28, P * 0.85, stone, a + L / 2, spring + rise + 0.06, line) : box(P * 0.85, 0.28, 0.22, stone, line, spring + rise + 0.06, a + L / 2));
+              }
+            }
+          }
+          g.add(box(s.w, T, s.h, style === 'square' ? concrete : mat(F.render), cx, H + T / 2, cz));
           g.add(box(s.w - 0.04, 0.03, s.h - 0.04, mat('#cfc7b8'), cx, H + T + 0.015, cz));
-          // a darker fascia band so the slab edge reads from the street
-          g.add(box(s.w + 0.02, 0.12, s.h + 0.02, mat('#8f8a82'), cx, H + T - 0.06, cz));
-          const rail = mat('#2f3133');
+          // the slab edge: a dark fascia, or a stone cornice for the classical styles
+          if (style === 'square') g.add(box(s.w + 0.02, 0.12, s.h + 0.02, mat('#8f8a82'), cx, H + T - 0.06, cz));
+          else g.add(box(s.w + 0.16, 0.14, s.h + 0.16, stone, cx, H + T - 0.07, cz), box(s.w + 0.06, 0.08, s.h + 0.06, stone, cx, H + 0.04, cz));
           const y0 = H + T;
+          if (s.railing === 'balustrade') {
+            // stone balustrade: plinth, turned balusters, top rail, pedestals every 2.5 m
+            for (const [x1, z1, x2, z2] of terraceRailEdges(s)) {
+              const len = Math.hypot(x2 - x1, z2 - z1);
+              const horiz = z1 === z2;
+              const mx = (x1 + x2) / 2;
+              const mz = (z1 + z2) / 2;
+              const along = (l, y, h, d) => (horiz ? box(len + 0.04, h, d, stone, mx, y, mz) : box(d, h, len + 0.04, stone, mx, y, mz));
+              g.add(along(len, y0 + 0.08, 0.16, 0.26), along(len, y0 + 0.88, 0.14, 0.28));
+              const n = Math.max(2, Math.round(len / 0.22));
+              const bal = new THREE.CylinderGeometry(0.045, 0.07, 0.64, 10);
+              for (let i = 1; i < n; i++) {
+                const t = i / n;
+                const b = new THREE.Mesh(bal, stone);
+                b.position.set(x1 + (x2 - x1) * t, y0 + 0.48, z1 + (z2 - z1) * t);
+                g.add(b);
+              }
+              const k = Math.max(1, Math.round(len / 2.5));
+              for (let i = 0; i <= k; i++) {
+                const t = i / k;
+                g.add(box(0.3, 0.95, 0.3, stone, x1 + (x2 - x1) * t, y0 + 0.475, z1 + (z2 - z1) * t));
+              }
+            }
+          } else {
+          const rail = mat('#2f3133');
           for (const [x1, z1, x2, z2] of terraceRailEdges(s)) {
             const len = Math.hypot(x2 - x1, z2 - z1);
             const horiz = z1 === z2;
@@ -1647,6 +1737,7 @@ export function create3D(container, store) {
               const t = i / n;
               g.add(box(0.025, 1.0, 0.025, rail, x1 + (x2 - x1) * t, y0 + 0.5, z1 + (z2 - z1) * t));
             }
+          }
           }
           break;
         }

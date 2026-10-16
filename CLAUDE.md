@@ -78,7 +78,8 @@ without overlaps or gaps.
 - `site[]`: plot, garage, terrace, pool, greenhouse, driveway, path… (`x`, `y`, `w`, `h`);
   garage/shed/greenhouse/carport/pergola also take `height` and `roof` (same fields as the house
   roof, default flat); a carport/pergola with a flat `walkable` roof is a roof terrace on concrete
-  pillars (`posts` [[x, y]…] centres, else automatic; `attached` = sides resting on the house or joining another deck, e.g. 'S' or 'WN'); trees/conifers/bushes/hedges use w/h as the crown and `height`; a `slope` is ground rising to
+  pillars (`postStyle` square/column/arcade, `railing` metal/balustrade; `posts` [[x, y]…] centres
+  with `postsBox` = the outline they were placed in, so they follow moves and resizes, else automatic; `attached` = sides resting on the house or joining another deck, e.g. 'S' or 'WN'); trees/conifers/bushes/hedges use w/h as the crown and `height`; a `slope` is ground rising to
   `height` towards `up` (N/S/E/W); any site element can be raised by `base` (m), e.g. a sauna on a
   cellar roof. The plot
   sets `street` (N/S/E/W, for the site plan label) and can carry `points` (polygon) and driveway/path `points` + `width` (curved centre line); x/y/w/h
@@ -97,7 +98,8 @@ without overlaps or gaps.
   rooms in `house.json` directly, run `syncRoofZones(house)` afterwards.
   `public/issues.js` `collectIssues(house)` lists every warning shown in the top-bar popover.
 - `facade`: `render`, `trim`, `shutters`, `plinthColor` colours and `cornice`, `quoins`, `bands`,
-  `plinth`, `rustication` (bosáž) switches (`public/facade.js`); exterior openings may have `shutters`, `juliet`, `surround`.
+  `plinth`, `rustication` (bosáž) switches (`public/facade.js`); exterior openings may have `shutters`, `juliet`, `surround`, and upper-floor doors a
+  small cantilevered `balcony` (depth in m, optional `balconyWidth`, default opening + 0.8 m).
 - `wall`: default thicknesses; `targets.livingArea`; `rules.stairs`, `rules.structure`.
 
 Comment targets: `house`, `roof`, `site/<id>`, `<floorId>/<roomId|doorId|openingId>`,

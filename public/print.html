@@ -13,7 +13,7 @@
 <body>
   <header class="toolbar">
     <b id="title">Plans</b>
-    <label>Paper <select id="paper"><option value="A3">A3 landscape</option><option value="A4">A4 landscape</option></select></label>
+    <label>Paper <select id="paper"><option value="A4">A4 landscape</option><option value="A3">A3 landscape</option></select></label>
     <label>Scale <select id="scale"><option value="auto">Auto (largest that fits)</option><option value="50">1:50</option><option value="100">1:100</option><option value="200">1:200</option></select></label>
     <span class="sheets" id="sheet-types"></span>
     <span class="spacer"></span>
@@ -22,7 +22,7 @@
     <button id="dl-csv">Costs (.csv)</button>
     <button id="print" class="primary">Print / Save as PDF</button>
   </header>
-  <p class="hint">Print at 100 % (“Actual size”, no “fit to page”) so the scale is exact. Choose “Save as PDF” as the printer to get a PDF.</p>
+  <p class="hint" id="print-hint">Print at 100 % (“Actual size”, no “fit to page”) so the scale is exact. Choose “Save as PDF” as the printer to get a PDF.</p>
   <main id="pages"></main>
   <script type="module" src="print.js"></script>
 </body>

@@ -243,6 +243,22 @@ async function boot() {
   $('#sheet-types').innerHTML = Object.entries(SHEETS)
     .map(([k, v]) => `<label><input type="checkbox" value="${k}" ${(only ? only === k : has[k] !== false) ? 'checked' : ''}> ${esc(v.label)}</label>`)
     .join('');
+  // the paper choice: remembered, and it sets the printed page size
+  try {
+    const saved = localStorage.getItem('openhomeplan:paper');
+    if (saved && PAPER[saved]) $('#paper').value = saved;
+  } catch {}
+  const pageSize = document.head.appendChild(document.createElement('style'));
+  const applyPaper = () => {
+    const p = $('#paper').value;
+    pageSize.textContent = `@page { size: ${p} landscape; margin: 0; }`;
+    $('#print-hint').textContent = `In the print dialog choose paper ${p}, landscape, and print at 100 % (“Actual size”, no “fit to page”) so the scale is exact. Choose “Save as PDF” as the printer to get a PDF.`;
+    try {
+      localStorage.setItem('openhomeplan:paper', p);
+    } catch {}
+  };
+  $('#paper').addEventListener('change', applyPaper);
+  applyPaper();
   for (const el of ['#paper', '#scale', '#sheet-types']) $(el).addEventListener('change', render);
   $('#print').onclick = () => window.print();
   $('#dl-md').onclick = () => download(`${fileSlug(house.name)}-brief.md`, briefMarkdown(buildBrief(house, { comments, briefText })), 'text/markdown');

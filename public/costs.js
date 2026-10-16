@@ -9,7 +9,7 @@
 import { totals, exteriorEdges, interiorEdges, placeDoor, placeOpening, curvedWalls } from './geometry.js';
 import { floorWalls } from './walls.js';
 import { sortedFloors } from './stairs.js';
-import { roofZones, roofArea, roofParts, openEdges, ROOF_COVERINGS, covering, atticRoof, atticRoofForOpening, kneeWall, isGableEnd, roundRoofs, coneArea, isTerraceOnPosts, terraceRailEdges } from './roof.js';
+import { roofZones, roofArea, roofParts, openEdges, ROOF_COVERINGS, covering, atticRoof, atticRoofForOpening, kneeWall, isGableEnd, roundRoofs, coneArea, isTerraceOnPosts, terraceRailEdges, sitePosts } from './roof.js';
 import { ITEMS, roomAt } from './items.js';
 import { measure } from './shapes.js';
 import { facadeQuantities } from './facade.js';
@@ -47,6 +47,7 @@ export const DEFAULT_PRICES = {
   rustication: ['Rusticated render on the ground floor (bosáž)', 'm²', 28, 'shell'],
   shutters: ['Shutters (pair, timber or aluminium)', 'pair', 650, 'openings'],
   juliet: ['Juliet balconies (wrought iron)', 'pc', 900, 'openings'],
+  balcony: ['Small cantilevered balconies (slab with thermal break, waterproofing, iron railing)', 'm²', 1300, 'openings'],
   surround: ['Window surrounds (stone look, keystone)', 'pc', 280, 'openings'],
   cornice: ['Cornice under the roof', 'm', 95, 'shell'],
   bands: ['Bands between floors', 'm', 45, 'shell'],
@@ -89,6 +90,9 @@ export const DEFAULT_PRICES = {
   'site-garden': ['Garden beds', 'm²', 20, 'site'],
   'site-carport': ['Carport', 'm²', 380, 'site'],
   'site-terrace-on-posts': ['Roof terrace on pillars (RC slab and pillars, waterproofing, paving)', 'm²', 720, 'site'],
+  'pillar-column': ['Round columns with base and capital (cast stone)', 'pc', 650, 'site'],
+  'pillar-arcade': ['Arcade: rendered piers with stone arches and mouldings', 'pc', 1800, 'site'],
+  balustrade: ['Stone balustrade (cast stone)', 'm', 480, 'site'],
   'site-pergola': ['Pergola / terrace cover', 'm²', 240, 'site'],
   'site-tree': ['Trees (planted, ~3 m tall)', 'pc', 180, 'site'],
   'site-conifer': ['Conifers', 'pc', 120, 'site'],
@@ -252,6 +256,7 @@ export function estimate(house) {
   const fq = facadeQuantities(house, { exteriorEdges, placeOpening, sortedFloors });
   add('shutters', fq.shutters);
   add('juliet', fq.juliet);
+  add('balcony', fq.balconyM2);
   add('surround', fq.surround);
   add('cornice', fq.cornice);
   add('bands', fq.bands);
@@ -367,7 +372,8 @@ export function estimate(house) {
     if (el.type === 'plot') add('fence', qty);
     else if (isTerraceOnPosts(el)) {
       add('site-terrace-on-posts', m.area, { id: `site:${el.id}`, label: el.name, priceKey: 'site-terrace-on-posts' });
-      add('railing', terraceRailEdges(el).reduce((a, [x1, y1, x2, y2]) => a + Math.hypot(x2 - x1, y2 - y1), 0));
+      add(el.railing === 'balustrade' ? 'balustrade' : 'railing', terraceRailEdges(el).reduce((a, [x1, y1, x2, y2]) => a + Math.hypot(x2 - x1, y2 - y1), 0));
+      if (el.postStyle === 'column' || el.postStyle === 'arcade') add(`pillar-${el.postStyle}`, sitePosts(el).length);
     } else if (DEFAULT_PRICES[`site-${el.type}`])
       add(`site-${el.type}`, qty, ['tree', 'conifer', 'bush', 'hedge'].includes(el.type) ? {} : { id: `site:${el.id}`, label: el.name, priceKey: `site-${el.type}` });
   }
