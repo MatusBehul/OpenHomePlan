@@ -111,7 +111,7 @@
   "help.devs": "Los desarrolladores también son muy bienvenidos: la aplicación es JavaScript puro, sin compilación y con una sola dependencia (Three.js). Lee <a href=\"{{repo}}/blob/main/CONTRIBUTING.md\">CONTRIBUTING.md</a>, elige una tarea y abre un pull request. El responsable del proyecto revisa cada cambio antes de integrarlo.",
   "help.translate": "¿Hablas otro idioma? Traducir esta página es un solo archivo: copia <code>site/i18n/en.json</code> con el código de tu idioma y abre un pull request.",
   "privacy.title": "Privacidad",
-  "privacy.text": "El planificador se ejecuta solo en tu ordenador y no habla con nadie, salvo cuando le pides descargar los tipos de cambio del Banco Central Europeo. Esta página no usa cookies, no carga nada de otros sitios y no cuenta a nadie.",
+  "privacy.text": "El planificador se ejecuta solo en tu ordenador y no habla con nadie, salvo cuando le pides descargar los tipos de cambio del Banco Central Europeo. Esta página no usa cookies, no carga nada de otros sitios y no cuenta a nadie. En la demo en línea puedes abrir una carpeta de Google Drive compartida por enlace: solo entonces tu navegador descarga los archivos de esa carpeta desde Google, en modo de solo lectura.",
   "permit.title": "No es un documento de licencia",
   "permit.text": "El planificador te ayuda a pensar y hablar sobre tu casa. Sus comprobaciones son reglas prácticas, no normativa de edificación. El proyecto real debe diseñarlo y firmarlo un arquitecto y unos ingenieros habilitados.",
   "footer.license": "OpenHomePlan es software libre con <a href=\"{{repo}}/blob/main/LICENSE\">licencia MIT</a>.",

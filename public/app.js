@@ -20,7 +20,7 @@ import { estimateCsv } from './costExport.js';
 import { FACADE_DEFAULTS, facadeSettings } from './facade.js';
 import { isShaped, SHAPED, toShape, toRect, measure, syncBox } from './shapes.js';
 import { estimate, moneyFor } from './costs.js';
-import { request, DEMO, DEMO_NOTICE, INSTALL_URL, houseFiles } from './backend.js';
+import { request, DEMO, DEMO_NOTICE, INSTALL_URL, houseFileUrl, DRIVE_FOLDER, folderIdFrom } from './backend.js';
 
 const $ = (sel, el = document) => el.querySelector(sel);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -34,7 +34,7 @@ const api = request;
 // Every house lives in its own folder on the server; the open one is in the URL (?house=…).
 // Paths are relative so the same files also work as the online demo under /demo/.
 const houseApi = (path) => `api/houses/${encodeURIComponent(store.slug)}/${path}`;
-export const assetUrl = (file) => `${houseFiles(store.slug)}${file}`;
+export const assetUrl = (file) => houseFileUrl(store.slug, file);
 
 function rememberHouse(slug) {
   try {
@@ -42,11 +42,14 @@ function rememberHouse(slug) {
   } catch {}
 }
 
+// ?house=… (plus the shared Drive folder in the demo, so the link can be passed on)
+const houseQuery = (slug) => `?house=${encodeURIComponent(slug)}${DRIVE_FOLDER ? `&folder=${encodeURIComponent(DRIVE_FOLDER)}` : ''}`;
+
 function openHouse(slug) {
   if (store.dirty && !confirm('You have unsaved changes. Leave this house without saving?')) return false;
   store.saved = JSON.stringify(store.house); // don't trigger the unload warning again
   rememberHouse(slug);
-  location.search = `?house=${encodeURIComponent(slug)}`;
+  location.search = houseQuery(slug);
   return true;
 }
 
@@ -1806,10 +1809,23 @@ function demoBanner() {
   document.body.classList.add('demo');
   $('#save').textContent = 'Saving off';
   $('#save').title = DEMO_NOTICE;
+  const drive = !!document.querySelector('meta[name="openhomeplan-drive-key"]')?.content;
   document.body.insertAdjacentHTML(
     'afterbegin',
-    `<div class="demo-banner" role="note"><b>Online demo.</b> Explore and change anything, but nothing is saved: your changes are lost when you reload or close this tab. Exports download to your own computer. <a href="${INSTALL_URL}" target="_blank" rel="noopener">Install OpenHomePlan (free)</a> to keep your houses.</div>`,
+    DRIVE_FOLDER
+      ? `<div class="demo-banner" role="note"><b>Houses from a shared Google Drive folder</b> (read-only). Reload to see the latest saved version. You can explore and change things here, but nothing is saved back. <button class="link" id="drive-open">Open another folder…</button> · <a href="?folder=none">Back to the sample houses</a></div>`
+      : `<div class="demo-banner" role="note"><b>Online demo.</b> Explore and change anything, but nothing is saved: your changes are lost when you reload or close this tab. Exports download to your own computer. <a href="${INSTALL_URL}" target="_blank" rel="noopener">Install OpenHomePlan (free)</a> to keep your houses.${drive ? ' <button class="link" id="drive-open">Open a shared Google Drive folder…</button>' : ''}</div>`,
   );
+  const open = $('#drive-open');
+  if (open)
+    open.onclick = () => {
+      const link = prompt('Paste the link of a Google Drive folder shared as “Anyone with the link can view”. It can hold several house folders, or be one house folder (with house.json). Your browser then reads it from Google; nothing is uploaded.');
+      if (link === null) return;
+      const id = folderIdFrom(link);
+      if (!id) return toast('That does not look like a Google Drive folder link', true);
+      store.saved = JSON.stringify(store.house); // leaving on purpose
+      location.search = `?folder=${encodeURIComponent(id)}`;
+    };
 }
 
 async function boot() {
@@ -1826,7 +1842,7 @@ async function boot() {
     return newHouseDialog();
   }
   rememberHouse(store.slug);
-  if (new URLSearchParams(location.search).get('house') !== store.slug) history.replaceState(null, '', `?house=${encodeURIComponent(store.slug)}`);
+  if (new URLSearchParams(location.search).get('house') !== store.slug) history.replaceState(null, '', houseQuery(store.slug));
   renderHousePicker();
   store.house = await api('GET', houseApi('house'));
   store.saved = JSON.stringify(store.house);
@@ -1962,5 +1978,12 @@ async function boot() {
 }
 
 boot().catch((err) => {
+  // a shared Drive folder that can't be read: say why and offer a way out
+  if (DEMO && DRIVE_FOLDER) {
+    document.body.innerHTML = `<div class="demo-error"><h2>Could not open the Google Drive folder</h2><p>${esc(err.message)}</p>
+      <p>Check that the folder is shared as <b>“Anyone with the link can view”</b> and holds house folders with a <code>house.json</code> (or is one).</p>
+      <p><a href="?folder=none">Back to the sample houses</a> (from there you can open another folder).</p></div>`;
+    return;
+  }
   document.body.innerHTML = `<pre style="padding:20px;color:#c2410c">Failed to start: ${esc(err.stack || err.message)}</pre>`;
 });

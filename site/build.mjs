@@ -107,12 +107,19 @@ function buildDemo() {
   }
   fs.writeFileSync(path.join(demo, 'demo-houses', 'index.json'), JSON.stringify(index));
 
+  // the browser key for reading shared Google Drive folders (restricted to this site's address
+  // and the Drive API, so it is fine to publish; see deploy/README.md). Without it the feature is off.
+  let driveKey = '';
+  try {
+    driveKey = JSON.parse(fs.readFileSync(path.join(HERE, 'config.json'), 'utf8')).googleApiKey || '';
+  } catch {}
+  if (driveKey && !/^[\w-]{20,60}$/.test(driveKey)) throw new Error('site/config.json: googleApiKey looks wrong');
   // mark the pages as the demo, and allow exactly their import maps (the only inline scripts)
   const hashes = [];
   for (const page of ['index.html', 'print.html']) {
     const file = path.join(demo, page);
     let html = fs.readFileSync(file, 'utf8');
-    html = html.replace('<meta charset="utf-8">', '<meta charset="utf-8">\n  <meta name="openhomeplan-demo" content="1">');
+    html = html.replace('<meta charset="utf-8">', `<meta charset="utf-8">\n  <meta name="openhomeplan-demo" content="1">${driveKey ? `\n  <meta name="openhomeplan-drive-key" content="${driveKey}">` : ''}`);
     const map = html.match(/<script type="importmap">([\s\S]*?)<\/script>/);
     if (!map) throw new Error(`demo/${page}: no import map found`);
     hashes.push(`'sha256-${createHash('sha256').update(map[1]).digest('base64')}'`);
@@ -122,15 +129,18 @@ function buildDemo() {
     "default-src 'none'",
     `script-src 'self' ${hashes.join(' ')}`,
     "style-src 'self' 'unsafe-inline'", // the app sets inline styles on generated elements
-    "img-src 'self' data: blob:",
-    "connect-src 'self'",
+    // Google's Drive API only when a shared folder is opened (files and textures are read from it)
+    `img-src 'self' data: blob:${driveKey ? ' https://www.googleapis.com' : ''}`,
+    `connect-src 'self'${driveKey ? ' https://www.googleapis.com' : ''}`,
     "base-uri 'none'",
     "form-action 'none'",
     "frame-ancestors 'none'",
   ].join('; ');
   const headers = fs
     .readFileSync(path.join(ROOT, 'deploy/site/security-headers.conf'), 'utf8')
-    .replace(/add_header Content-Security-Policy "[^"]*"/, `add_header Content-Security-Policy "${csp}"`);
+    .replace(/add_header Content-Security-Policy "[^"]*"/, `add_header Content-Security-Policy "${csp}"`)
+    // the key only works with the site's address as referrer: send the origin, never the page
+    .replace(/add_header Referrer-Policy "[^"]*"/, 'add_header Referrer-Policy "strict-origin"');
   fs.rmSync(CONF, { recursive: true, force: true });
   fs.mkdirSync(CONF, { recursive: true });
   fs.writeFileSync(path.join(CONF, 'demo-headers.conf'), headers);

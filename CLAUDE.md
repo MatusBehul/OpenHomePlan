@@ -11,7 +11,9 @@ step: `npm install && npm start`, then http://localhost:3000. The only dependenc
   - `app.js` state store (undo/redo), top bar, sidebar panels, house picker
   - `backend.js` all server requests (relative `api/…` paths); in the online demo
     (`<meta name="openhomeplan-demo">`, built into `site/dist/demo/` by `site/build.mjs`) it reads
-    the templates as static files and refuses to save, comment or upload
+    the templates as static files and refuses to save, comment or upload; with `?folder=<Drive link>`
+    it reads houses read-only from a Google Drive folder shared by link (`drive.js`, Drive API with the
+    browser key from `site/config.json`)
   - `plan2d.js` SVG floor plan and all drag interactions
   - `view3d.js` Three.js model
   - `geometry.js` room rasterising, exterior/interior wall edges, doors/windows placement

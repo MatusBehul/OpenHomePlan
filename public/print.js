@@ -9,7 +9,7 @@ import { houseToDxf } from './dxf.js';
 import { download, fileSlug } from './download.js';
 import { create3D } from './view3d.js';
 import { estimateCsv, estimateHtml } from './costExport.js';
-import { request, DEMO } from './backend.js';
+import { request, DEMO, houseFileUrl } from './backend.js';
 
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -114,7 +114,7 @@ function renderSheet(pages, floor, kind, paperKey, wantedScale, index, total, gr
     floor: () => floor,
     resolve: (t) => resolveTarget(house, t),
     openComments: () => 0,
-    assetUrl: (file) => `/houses/${encodeURIComponent(slug)}/${file}`,
+    assetUrl: (file) => houseFileUrl(slug, file),
   };
   const drawing = page.querySelector('.drawing');
   const { svg } = createPlan(drawing, store, { static: true, viewBox, px: (0.3 * scale) / 1000, layers: store.layers });
@@ -150,7 +150,7 @@ async function render3dViews() {
     on() {}, select() {}, beginBatch() {}, endBatch() {}, changed() {},
     openComments: () => 0,
     resolve: (t) => resolveTarget(house, t),
-    assetUrl: (file) => `/houses/${encodeURIComponent(slug)}/${file}`,
+    assetUrl: (file) => houseFileUrl(slug, file),
   };
   viewer ||= create3D(box, store3d);
   const floors = sortedFloors(house);

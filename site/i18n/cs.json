@@ -111,7 +111,7 @@
   "help.devs": "Vítáme i vývojáře: aplikace je čistý JavaScript bez sestavování a s jedinou závislostí (Three.js). Přečtěte si <a href=\"{{repo}}/blob/main/CONTRIBUTING.md\">CONTRIBUTING.md</a>, vyberte si úkol a pošlete pull request. Každou změnu před začleněním zkontroluje správce projektu.",
   "help.translate": "Mluvíte jiným jazykem? Překlad této stránky je jeden soubor: zkopírujte <code>site/i18n/en.json</code> pod kódem svého jazyka a pošlete pull request.",
   "privacy.title": "Soukromí",
-  "privacy.text": "Plánovač běží jen na vašem počítači a s nikým nekomunikuje, kromě stažení měnových kurzů od Evropské centrální banky, když o to požádáte. Tato stránka nenastavuje žádné cookies, nic nenačítá z jiných webů a nikoho nepočítá.",
+  "privacy.text": "Plánovač běží jen na vašem počítači a s nikým nekomunikuje, kromě stažení měnových kurzů od Evropské centrální banky, když o to požádáte. Tato stránka nenastavuje žádné cookies, nic nenačítá z jiných webů a nikoho nepočítá. V online ukázce můžete otevřít složku Google Disku sdílenou odkazem: jen tehdy si váš prohlížeč načte soubory této složky od Googlu, pouze ke čtení.",
   "permit.title": "Není to projektová dokumentace",
   "permit.text": "Plánovač vám pomáhá o domě přemýšlet a mluvit. Jeho kontroly jsou orientační pravidla, ne stavební předpisy. Skutečný projekt musí navrhnout a podepsat autorizovaný architekt a inženýři.",
   "footer.license": "OpenHomePlan je svobodný software pod <a href=\"{{repo}}/blob/main/LICENSE\">licencí MIT</a>.",

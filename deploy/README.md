@@ -83,3 +83,23 @@ npm run site                                     # then open site/dist/index.htm
 docker build -f deploy/site/Dockerfile -t openhomeplan-site .
 docker run --rm -p 8080:8080 openhomeplan-site   # http://localhost:8080
 ```
+
+## Google Drive folders in the online demo
+
+The demo can open a Google Drive folder shared as "Anyone with the link can view" and show the
+houses in it, read-only (`public/drive.js`). It uses the Drive API with a browser API key kept in
+`site/config.json`. The key is meant to be public (it is in the page): it is restricted to the Drive
+API and to the site's addresses as referrer, so it can't be used from elsewhere. The demo sends its
+origin as referrer to Google (`Referrer-Policy: strict-origin` in the demo headers) and allows only
+`https://www.googleapis.com` beyond its own files.
+
+```sh
+gcloud services enable drive.googleapis.com apikeys.googleapis.com --project openhomeplan
+gcloud services api-keys create --project openhomeplan \
+  --display-name="OpenHomePlan demo: read shared Drive folders" \
+  --api-target=service=drive.googleapis.com \
+  --allowed-referrers="https://openhomeplan.wadby.tech/*,https://openhomeplan-site-4roa4bj3lq-ew.a.run.app/*,http://localhost:3301/*"
+gcloud services api-keys get-key-string <uid> --project openhomeplan   # → site/config.json
+```
+
+Without `site/config.json` the build leaves the feature out.
