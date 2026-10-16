@@ -99,3 +99,22 @@ test('a beam over an open passage carries the slab like a load-bearing wall', as
   assert.deepEqual(structureIssues(h), []);
   assert.ok(estimate(h).lines.some((l) => l.key === 'beam' || l.id === 'beam'), 'the beam is priced');
 });
+
+test('cost scenarios: self-build drops labour, keeps licensed work and design fees', () => {
+  const h = load('family-house');
+  h.costs = { ...(h.costs || {}), scenarios: [{ id: 's1', name: 'Self-build', diy: ['shell', 'finishes', 'services'], labourSaved: 1, prices: { 'floor-tiles': 40 } }] };
+  const turnkey = estimate(h);
+  const self = estimate(h, 's1');
+  assert.equal(self.scenario.name, 'Self-build');
+  assert.ok(self.total < turnkey.total, 'self-build is cheaper');
+  const line = (e, id) => e.lines.find((l) => l.id === id);
+  // shell: 40 % labour gone
+  assert.ok(Math.abs(line(self, 'foundations').price - line(turnkey, 'foundations').price * 0.6) < 0.01);
+  // licensed work keeps the contractor price
+  assert.equal(line(self, 'heating').price, line(turnkey, 'heating').price);
+  // design & permits are taken from the turnkey construction cost
+  assert.ok(Math.abs(line(self, 'fees:design').total - line(turnkey, 'fees:design').total) < 0.01);
+  // a scenario's own price applies only there (then loses the DIY labour share)
+  assert.ok(Math.abs(line(self, 'floor-tiles')?.price - 40 * (1 - 0.55)) < 0.01 || !line(self, 'floor-tiles'));
+  assert.notEqual(line(turnkey, 'floor-tiles')?.price, 40);
+});

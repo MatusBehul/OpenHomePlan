@@ -8,6 +8,13 @@ Which house: `$ARGUMENTS` if given, otherwise the house in the houses folder who
 `housesDir` in `planner.config.json`, else `./houses`. Below, paths are relative to that
 house's folder, and **git commands run inside that folder** (each house is its own repository).
 
+0. Comments written in the online demo wait in a Google Drive folder "OpenHomePlan comments"
+   (the commenter's Drive). If a Google Drive connector is available, find that folder, download
+   each `.md` file in it to a temporary folder and run `npm run import-comments -- <that folder>`
+   from the planner's folder: it files every comment under its house (matched by `house_folder`)
+   and commits it. Then move the imported files to the Drive trash (the command prints
+   "Imported comment …" per file; files it could not match stay, report them). The running
+   planner also imports them by itself from a Google Drive folder synced on this computer.
 1. Read `BRIEF.md` if the house has one, then every `.md` file in `comments/open/` (ignore
    `.gitkeep`). Process them oldest first (by `created`).
 2. For each comment, change `house.json` (and the app code in the app repository, if the comment

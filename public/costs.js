@@ -135,8 +135,22 @@ export const costSettings = (house) => ({
   ...(house.costs || {}),
 });
 
-export function priceOf(house, key) {
+// ---------- scenarios ----------
+// The house's own prices are the "turnkey" estimate. house.costs.scenarios[] adds variants:
+// { id, name, prices: { key: price } (on top of the turnkey prices), diy: [groups done by
+// ourselves], labourSaved (0–1, share of that labour actually saved; default 0.8), contingencyPct }.
+// In a DIY group a line keeps its material and drops its labour share; licensed work keeps the
+// contractor price.
+export const LABOUR_SHARE = { shell: 0.4, openings: 0.15, finishes: 0.55, services: 0.4, fittings: 0.2, site: 0.45, furniture: 0, fees: 0 };
+export const LICENSED = new Set(['el-point', 'el-400', 'el-board', 'el-circuit', 'allow-electrical', 'gas-point', 'meters', 'connections', 'heating', 'ventilation']);
+export const DIY_GROUPS = ['shell', 'openings', 'finishes', 'services', 'fittings', 'site'];
+export const BASE_SCENARIO = { id: 'turnkey', name: 'Turnkey (contractor)' };
+export const costScenarios = (house) => [BASE_SCENARIO, ...(house.costs?.scenarios || [])];
+export const findScenario = (house, id) => (house.costs?.scenarios || []).find((x) => x.id === id) || null;
+
+export function priceOf(house, key, scenario = null) {
   const s = costSettings(house);
+  if (scenario?.prices && key in scenario.prices) return scenario.prices[key];
   if (key in s.prices) return s.prices[key];
   if (key.startsWith('item:')) return ITEM_PRICES[key.slice(5)] ?? 0;
   return DEFAULT_PRICES[key]?.[2] ?? 0;
@@ -165,23 +179,33 @@ export function wallArea(house, floor, room, height) {
 
 const fixQty = (v) => Math.round(v * 10) / 10;
 
-export function estimate(house) {
+// The estimate, for the turnkey prices or for one of the house's scenarios (by id).
+export function estimate(house, scenarioId = null) {
   const s = costSettings(house);
+  const sc = scenarioId ? findScenario(house, scenarioId) : null;
+  const diy = new Set(sc?.diy || []);
+  const saved = Math.min(1, Math.max(0, sc?.labourSaved ?? 0.8));
   const excluded = new Set(s.exclude);
   const lines = [];
   const add = (key, qty, extra = {}) => {
     if (!qty) return;
     const def = DEFAULT_PRICES[key];
-    const price = priceOf(house, extra.priceKey || key);
+    const priceKey = extra.priceKey || key;
+    const group = extra.group || def?.[3] || 'shell';
+    let price = priceOf(house, priceKey, sc);
+    // done by ourselves: the labour share of the price goes (licensed work excepted)
+    const self = diy.has(group) && !LICENSED.has(priceKey);
+    if (self) price = Math.round(price * (1 - (LABOUR_SHARE[group] ?? 0) * saved) * 100) / 100;
     const id = extra.id || key;
     const line = {
       id,
-      key: extra.priceKey || key,
+      key: priceKey,
       label: extra.label || def?.[0] || key,
       unit: extra.unit || def?.[1] || 'pc',
-      group: extra.group || def?.[3] || 'shell',
+      group,
       qty: fixQty(qty),
       price,
+      diy: self,
       included: !excluded.has(id),
     };
     line.total = line.included ? line.qty * line.price : 0;
@@ -376,18 +400,25 @@ export function estimate(house) {
       add('site-terrace-on-posts', m.area, { id: `site:${el.id}`, label: el.name, priceKey: 'site-terrace-on-posts' });
       add(el.railing === 'balustrade' ? 'balustrade' : 'railing', terraceRailEdges(el).reduce((a, [x1, y1, x2, y2]) => a + Math.hypot(x2 - x1, y2 - y1), 0));
       if (el.postStyle === 'column' || el.postStyle === 'arcade') add(`pillar-${el.postStyle}`, sitePosts(el).length);
+    } else if (DEFAULT_PRICES[`site-${el.type}`] && (el.postStyle === 'column' || el.postStyle === 'arcade')) {
+      // a roof on stone pillars: the structure as a carport, plus the pillars
+      add('site-carport', m.area, { id: `site:${el.id}`, label: el.name, priceKey: 'site-carport' });
+      add(`pillar-${el.postStyle}`, sitePosts(el).length);
     } else if (DEFAULT_PRICES[`site-${el.type}`])
       add(`site-${el.type}`, qty, ['tree', 'conifer', 'bush', 'hedge'].includes(el.type) ? {} : { id: `site:${el.id}`, label: el.name, priceKey: `site-${el.type}` });
   }
 
   // ---- fees
   const build = lines.filter((l) => l.group !== 'furniture').reduce((a, l) => a + l.total, 0);
-  const pct = (id, label, p) => {
+  // design, permits and supervision don't get cheaper when you build yourself: take them
+  // from the turnkey construction cost
+  const turnkeyBuild = sc && diy.size ? estimate(house).build : build;
+  const pct = (id, label, p, base = build) => {
     const included = !excluded.has(id);
-    lines.push({ id, key: id, label: `${label} (${p} % of construction)`, unit: '%', group: 'fees', qty: p, price: build / 100, included, total: included ? (build * p) / 100 : 0, percent: true });
+    lines.push({ id, key: id, label: `${label} (${p} % of ${base === build ? 'construction' : 'turnkey construction'})`, unit: '%', group: 'fees', qty: p, price: base / 100, included, total: included ? (base * p) / 100 : 0, percent: true });
   };
-  pct('fees:design', 'Design, permits & site supervision', s.designPct);
-  pct('fees:contingency', 'Contingency', s.contingencyPct);
+  pct('fees:design', 'Design, permits & site supervision', s.designPct, turnkeyBuild);
+  pct('fees:contingency', 'Contingency', sc?.contingencyPct ?? s.contingencyPct);
 
   const total = lines.reduce((a, l) => a + l.total, 0);
   const groups = Object.keys(COST_GROUPS).map((g) => ({ id: g, label: COST_GROUPS[g], total: lines.filter((l) => l.group === g).reduce((a, l) => a + l.total, 0) }));
@@ -400,6 +431,8 @@ export function estimate(house) {
   const budget = Number(s.budget) || 0;
   const remaining = budget ? budget - total : null;
   return {
+    scenario: sc ? { id: sc.id, name: sc.name } : BASE_SCENARIO,
+    build,
     currency: s.currency,
     lines,
     groups,

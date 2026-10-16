@@ -292,6 +292,74 @@ async function createComment(dir, { target, target_name, text }) {
   return { comment: parseComment(content, file, 'open', dir), commit: hash };
 }
 
+// ---------- comments from the online demo ----------
+
+// Comments written in the online demo are saved to the commenter's Google Drive, in a folder
+// "OpenHomePlan comments". Google Drive on this computer syncs that folder; here we move each one
+// into its house's comments/open/ (matched by the house's folder name) and commit it.
+const INBOX_NAME = 'OpenHomePlan comments';
+function commentInboxes() {
+  const configured = process.env.COMMENTS_INBOX || loadConfig().commentsInbox;
+  if (configured) return [path.resolve(ROOT, expandHome(configured))];
+  // Google Drive for desktop on macOS: ~/Library/CloudStorage/GoogleDrive-<account>/My Drive/
+  const cloud = path.join(os.homedir(), 'Library', 'CloudStorage');
+  let accounts = [];
+  try {
+    accounts = fs.readdirSync(cloud).filter((d) => d.startsWith('GoogleDrive-'));
+  } catch {}
+  return accounts.map((a) => path.join(cloud, a, 'My Drive', INBOX_NAME)).filter((d) => fs.existsSync(d));
+}
+
+let importing = false;
+async function importComments() {
+  if (importing) return;
+  importing = true;
+  try {
+    for (const inbox of commentInboxes()) {
+      let files = [];
+      try {
+        files = (await fsp.readdir(inbox)).filter((f) => f.endsWith('.md'));
+      } catch {
+        continue;
+      }
+      for (const f of files) {
+        const full = path.join(inbox, f);
+        try {
+          const text = await fsp.readFile(full, 'utf8');
+          const meta = parseComment(text, full, 'open', inbox);
+          const fm = Object.fromEntries([...(text.match(/^---\r?\n([\s\S]*?)\r?\n---/)?.[1] || '').matchAll(/^([\w-]+):\s*(.*?)\s*$/gm)].map((m) => [m[1], m[2]]));
+          // the house: its folder name, else a house with the same name
+          let slug = SLUG.test(fm.house_folder || '') && fs.existsSync(path.join(HOUSES_DIR, fm.house_folder, 'house.json')) ? fm.house_folder : null;
+          if (!slug && fm.house_name) slug = (await listHouses()).find((h) => h.name === fm.house_name)?.slug || null;
+          if (!slug) {
+            console.log(`Comment ${f} in ${inbox}: no house "${fm.house_folder || fm.house_name}" here; left in the inbox.`);
+            continue;
+          }
+          const dir = houseDir(slug);
+          const openDir = path.join(dir, 'comments', 'open');
+          await fsp.mkdir(openDir, { recursive: true });
+          let id = SLUG.test(meta.id) ? meta.id : `${Date.now()}`;
+          for (let n = 2; fs.existsSync(path.join(openDir, `${id}.md`)) || fs.existsSync(path.join(dir, 'comments', 'resolved', `${id}.md`)); n++) id = `${meta.id}-${n}`;
+          // keep the comment as the planner writes them, noting who wrote it and from where
+          const content =
+            `---\nid: ${id}\ntarget: ${oneLine(meta.target)}\ntarget_name: ${oneLine(meta.target_name)}\nstatus: open\ncreated: ${oneLine(meta.created || localIsoWithOffset(new Date()))}\n` +
+            (fm.author ? `author: ${oneLine(fm.author)}\n` : '') +
+            `source: online demo\n---\n\n${meta.body}\n`;
+          const target = path.join(openDir, `${id}.md`);
+          await fsp.writeFile(target, content, { flag: 'wx' });
+          await commit(dir, [path.relative(dir, target)], `Comment ${id} on ${oneLine(meta.target_name)} (from the online demo${fm.author ? `, ${oneLine(fm.author)}` : ''})`);
+          await fsp.unlink(full);
+          console.log(`Imported comment ${id} into ${slug} (from ${inbox}).`);
+        } catch (err) {
+          console.log(`Comment ${f}: could not import: ${err.message}`);
+        }
+      }
+    }
+  } finally {
+    importing = false;
+  }
+}
+
 // ---------- exchange rates ----------
 
 // Euro foreign exchange reference rates from the European Central Bank (base EUR, updated on
@@ -453,11 +521,26 @@ async function handle(req, res) {
   }
 }
 
-seedHouses()
+// `node server.js --import-comments <folder>`: import comment files from a folder once and exit
+// (e.g. files fetched from the "OpenHomePlan comments" folder in Google Drive).
+const importAt = process.argv.indexOf('--import-comments');
+if (importAt > 0) {
+  const from = process.argv[importAt + 1];
+  if (!from || !fs.existsSync(from)) {
+    console.error('Usage: npm run import-comments -- <folder with comment .md files>');
+    process.exit(1);
+  }
+  process.env.COMMENTS_INBOX = path.resolve(from);
+  importComments().then(() => process.exit(0));
+} else seedHouses()
   .catch((err) => console.warn('Could not prepare the houses folder:', err.message))
   .then(() => {
     http.createServer(handle).listen(PORT, '127.0.0.1', () => {
       console.log(`House planner running at http://localhost:${PORT}`);
       console.log(`Houses folder: ${HOUSES_DIR}`);
+      const inboxes = commentInboxes();
+      if (inboxes.length) console.log(`Comments from the online demo: ${inboxes.join(', ')}`);
+      importComments();
+      setInterval(importComments, 20_000).unref();
     });
   });

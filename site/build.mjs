@@ -110,16 +110,20 @@ function buildDemo() {
   // the browser key for reading shared Google Drive folders (restricted to this site's address
   // and the Drive API, so it is fine to publish; see deploy/README.md). Without it the feature is off.
   let driveKey = '';
+  let clientId = '';
   try {
-    driveKey = JSON.parse(fs.readFileSync(path.join(HERE, 'config.json'), 'utf8')).googleApiKey || '';
+    const cfg = JSON.parse(fs.readFileSync(path.join(HERE, 'config.json'), 'utf8'));
+    driveKey = cfg.googleApiKey || '';
+    clientId = cfg.googleClientId || ''; // OAuth client for comments saved to the user's Drive
   } catch {}
+  if (clientId && !/^[\w-]+\.apps\.googleusercontent\.com$/.test(clientId)) throw new Error('site/config.json: googleClientId looks wrong');
   if (driveKey && !/^[\w-]{20,60}$/.test(driveKey)) throw new Error('site/config.json: googleApiKey looks wrong');
   // mark the pages as the demo, and allow exactly their import maps (the only inline scripts)
   const hashes = [];
   for (const page of ['index.html', 'print.html']) {
     const file = path.join(demo, page);
     let html = fs.readFileSync(file, 'utf8');
-    html = html.replace('<meta charset="utf-8">', `<meta charset="utf-8">\n  <meta name="openhomeplan-demo" content="1">${driveKey ? `\n  <meta name="openhomeplan-drive-key" content="${driveKey}">` : ''}`);
+    html = html.replace('<meta charset="utf-8">', `<meta charset="utf-8">\n  <meta name="openhomeplan-demo" content="1">${driveKey ? `\n  <meta name="openhomeplan-drive-key" content="${driveKey}">` : ''}${clientId ? `\n  <meta name="openhomeplan-google-client" content="${clientId}">` : ''}`);
     const map = html.match(/<script type="importmap">([\s\S]*?)<\/script>/);
     if (!map) throw new Error(`demo/${page}: no import map found`);
     hashes.push(`'sha256-${createHash('sha256').update(map[1]).digest('base64')}'`);

@@ -1,5 +1,5 @@
 // The Costs tab: budget, summary, what the budget allows, and the editable price table.
-import { estimate, money, COST_GROUPS, DEFAULT_PRICES, ITEM_PRICES, costSettings, displayFx, BASE_CURRENCY } from './costs.js';
+import { estimate, money, COST_GROUPS, DEFAULT_PRICES, ITEM_PRICES, costSettings, displayFx, BASE_CURRENCY, costScenarios, findScenario, DIY_GROUPS, LABOUR_SHARE } from './costs.js';
 import { estimateCsv } from './costExport.js';
 import { download, fileSlug } from './download.js';
 import { request } from './backend.js';
@@ -35,9 +35,50 @@ export function createCostsView(container, store, onPrint) {
     }
   }
 
+  // the scenario shown and edited below (null = the turnkey prices)
+  const activeId = () => (findScenario(store.house, settings().activeScenario) ? settings().activeScenario : null);
+
+  // Side by side: every scenario's groups, total, cost per m² and difference to turnkey.
+  function compareHtml(m) {
+    const list = costScenarios(store.house).map((sc) => ({ sc, e: estimate(store.house, sc.id === 'turnkey' ? null : sc.id) }));
+    const base = list[0].e;
+    const groups = Object.keys(COST_GROUPS).filter((g) => list.some(({ e }) => e.groups.find((x) => x.id === g)?.total));
+    const active = activeId() || 'turnkey';
+    const col = ({ sc }) => `<th class="num ${sc.id === active ? 'active' : ''}"><button class="link" data-scenario="${esc(sc.id)}" title="Show and edit this scenario's prices below">${esc(sc.name)}</button></th>`;
+    const diff = (v) => (Math.abs(v) < 1 ? '—' : `${v < 0 ? '−' : '+'}${m(Math.abs(v))}`);
+    return `<div class="cost-compare">
+      <div class="row"><b>Compare</b>
+        <button class="small" id="add-selfbuild" title="Groups you do yourselves keep their material and lose most of their labour cost">+ Self-build scenario</button>
+        <button class="small" id="add-copy" title="A copy of the scenario shown below, to change prices in">+ Copy of “${esc(list.find((x) => x.sc.id === active).sc.name)}”</button></div>
+      ${list.length > 1
+        ? `<table class="cost-table compare"><thead><tr><th></th>${list.map(col).join('')}</tr></thead><tbody>
+          ${groups.map((g) => `<tr><td>${esc(COST_GROUPS[g])}</td>${list.map(({ sc, e }) => `<td class="num ${sc.id === active ? 'active' : ''}">${m(e.groups.find((x) => x.id === g)?.total || 0)}</td>`).join('')}</tr>`).join('')}
+          <tr class="group"><td>Total</td>${list.map(({ sc, e }) => `<td class="num ${sc.id === active ? 'active' : ''}"><b>${m(e.total)}</b></td>`).join('')}</tr>
+          <tr><td>Per m² of living area</td>${list.map(({ sc, e }) => `<td class="num ${sc.id === active ? 'active' : ''}">${m(e.perLiving)}</td>`).join('')}</tr>
+          <tr><td>Compared with turnkey</td>${list.map(({ sc, e }) => `<td class="num ${sc.id === active ? 'active' : ''} ${e.total < base.total - 1 ? 'good' : e.total > base.total + 1 ? 'bad' : ''}">${diff(e.total - base.total)}</td>`).join('')}</tr>
+          </tbody></table>`
+        : '<p class="cost-note">Add a scenario, e.g. building it yourselves, to compare it with the turnkey price.</p>'}
+    </div>`;
+  }
+
+  // Settings of the scenario shown (name, what you do yourselves, contingency).
+  function scenarioHtml(sc) {
+    if (!sc) return '';
+    const diy = new Set(sc.diy || []);
+    return `<div class="cost-scenario">
+      <label>Scenario<input data-sc="name" value="${esc(sc.name)}"></label>
+      <div class="diy-groups"><span>We do it ourselves:</span>${DIY_GROUPS.map((g) => `<label class="check" title="About ${Math.round(LABOUR_SHARE[g] * 100)} % of these prices is labour"><input type="checkbox" data-diy="${g}" ${diy.has(g) ? 'checked' : ''}> ${esc(COST_GROUPS[g])}</label>`).join('')}</div>
+      <label title="You still pay helpers, rent tools and redo things: 80 % is a fair start">Labour saved %<input type="number" min="0" max="100" step="5" data-sc="labourSaved" value="${Math.round((sc.labourSaved ?? 0.8) * 100)}"></label>
+      <label title="Building yourself takes longer and surprises cost more: 15 % is common">Contingency %<input type="number" min="0" max="50" step="0.5" data-sc="contingencyPct" value="${sc.contingencyPct ?? costSettings(store.house).contingencyPct}"></label>
+      <button class="small danger" id="sc-delete">Delete scenario</button>
+      <p class="cost-note">Prices you change below are kept for this scenario only. Licensed work (electrics, gas, meters, connections, heat pump, ventilation) stays at the contractor's price; design and permits stay as in turnkey.</p>
+    </div>`;
+  }
+
   function render() {
     if (container.classList.contains('hidden')) return;
-    const e = estimate(store.house);
+    const sc = activeId() ? findScenario(store.house, activeId()) : null;
+    const e = estimate(store.house, sc?.id || null);
     const s = costSettings(store.house);
     // all amounts are EUR; show them in the display currency
     const fx = displayFx(store.house);
@@ -88,7 +129,10 @@ export function createCostsView(container, store, onPrint) {
               ${rateMessage ? `<br><span class="bad">${esc(rateMessage)}</span>` : ''}
             </p>`}
 
+        ${compareHtml(m)}
+        ${scenarioHtml(sc)}
         <div class="cost-cards">
+          <div class="card"><small>Showing</small><b class="scn">${esc(e.scenario.name)}</b></div>
           <div class="card"><small>Estimated total</small><b>${m(e.total)}</b></div>
           <div class="card"><small>Budget</small><b>${e.budget ? m(e.budget) : '—'}</b></div>
           <div class="card ${over ? 'bad' : e.budget ? 'good' : ''}"><small>${over ? 'Over budget' : 'Left'}</small><b>${e.remaining === null ? '—' : m(Math.abs(e.remaining))}</b></div>
@@ -112,10 +156,10 @@ export function createCostsView(container, store, onPrint) {
                   .map(
                     (l) => `<tr class="${l.included ? '' : 'off'}">
                       <td><input type="checkbox" data-include="${esc(l.id)}" ${l.included ? 'checked' : ''} title="${l.included ? 'Leave out of the estimate' : 'Include in the estimate'}"></td>
-                      <td>${esc(l.label)}</td>
+                      <td>${esc(l.label)}${l.diy ? ' <span class="badge diy" title="Done by yourselves: material only, most labour saved">DIY</span>' : ''}</td>
                       <td class="num">${l.percent ? '' : l.qty.toLocaleString()}</td>
                       <td>${l.percent ? '' : esc(l.unit)}</td>
-                      <td class="num">${l.percent ? `${l.qty} %` : `<input type="number" min="0" step="any" data-price="${esc(l.key)}" value="${toShown(l.price)}" class="${l.key in (s.prices || {}) ? 'custom' : ''}">`}</td>
+                      <td class="num">${l.percent ? `${l.qty} %` : `<input type="number" min="0" step="any" data-price="${esc(l.key)}" value="${toShown(l.price)}" ${l.diy ? 'disabled title="Worked out from the turnkey price minus your labour; untick the group above to type a price"' : ''} class="${l.key in (sc ? sc.prices || {} : s.prices || {}) ? 'custom' : ''}">`}</td>
                       <td class="num">${m(l.total)}</td>
                     </tr>`,
                   )
@@ -148,7 +192,7 @@ export function createCostsView(container, store, onPrint) {
     container.querySelectorAll('[data-price]').forEach((el) =>
       el.addEventListener('change', () => {
         const key = el.dataset.price;
-        const prices = (settings().prices ||= {});
+        const prices = sc ? (sc.prices ||= {}) : (settings().prices ||= {});
         // typed in the display currency, stored in EUR
         const v = Math.round((Math.max(0, Number(el.value) || 0) / rate) * 100) / 100;
         const def = key.startsWith('item:') ? ITEM_PRICES[key.slice(5)] : DEFAULT_PRICES[key]?.[2];
@@ -198,11 +242,57 @@ export function createCostsView(container, store, onPrint) {
         store.changed();
       }),
     );
+    // scenarios
+    container.querySelectorAll('[data-scenario]').forEach((b) =>
+      b.addEventListener('click', () => {
+        if (b.dataset.scenario === 'turnkey') delete settings().activeScenario;
+        else settings().activeScenario = b.dataset.scenario;
+        store.changed();
+      }),
+    );
+    const addScenario = (sc) => {
+      const list = (settings().scenarios ||= []);
+      let n = 1;
+      while (list.some((x) => x.id === `s${n}`)) n++;
+      list.push({ ...sc, id: `s${n}` });
+      settings().activeScenario = `s${n}`;
+      store.changed();
+    };
+    container.querySelector('#add-selfbuild').onclick = () =>
+      addScenario({ name: 'Self-build', diy: ['shell', 'finishes', 'site'], labourSaved: 0.8, contingencyPct: 15, prices: { ...(sc?.prices || {}) } });
+    container.querySelector('#add-copy').onclick = () =>
+      addScenario({ ...(sc ? JSON.parse(JSON.stringify(sc)) : {}), id: undefined, name: `${sc ? sc.name : 'Turnkey'} (copy)`, prices: { ...(sc?.prices || {}) } });
+    container.querySelectorAll('[data-sc]').forEach((el) =>
+      el.addEventListener('change', () => {
+        const k = el.dataset.sc;
+        if (k === 'name') sc.name = el.value.trim() || sc.name;
+        else if (k === 'labourSaved') sc.labourSaved = Math.min(100, Math.max(0, Number(el.value) || 0)) / 100;
+        else sc[k] = Math.max(0, Number(el.value) || 0);
+        store.changed();
+      }),
+    );
+    container.querySelectorAll('[data-diy]').forEach((el) =>
+      el.addEventListener('change', () => {
+        const set = new Set(sc.diy || []);
+        if (el.checked) set.add(el.dataset.diy);
+        else set.delete(el.dataset.diy);
+        sc.diy = DIY_GROUPS.filter((g) => set.has(g));
+        store.changed();
+      }),
+    );
+    container.querySelector('#sc-delete')?.addEventListener('click', () => {
+      if (!confirm(`Delete the scenario “${sc.name}”? (You can undo this.)`)) return;
+      settings().scenarios = settings().scenarios.filter((x) => x !== sc);
+      if (!settings().scenarios.length) delete settings().scenarios;
+      delete settings().activeScenario;
+      store.changed();
+    });
     container.querySelector('#costs-csv').onclick = () => download(`${fileSlug(store.house.name)}-costs.csv`, estimateCsv(store.house), 'text/csv');
     container.querySelector('#costs-print').onclick = () => onPrint?.('costs');
     container.querySelector('#reset-prices').onclick = () => {
-      if (!confirm('Reset all unit prices to the example values? (You can undo this.)')) return;
-      delete settings().prices;
+      if (!confirm(sc ? `Reset this scenario's own prices to the turnkey prices? (You can undo this.)` : 'Reset all unit prices to the example values? (You can undo this.)')) return;
+      if (sc) delete sc.prices;
+      else delete settings().prices;
       store.changed();
     };
   }

@@ -13,7 +13,10 @@ step: `npm install && npm start`, then http://localhost:3000. The only dependenc
     (`<meta name="openhomeplan-demo">`, built into `site/dist/demo/` by `site/build.mjs`) it reads
     the templates as static files and refuses to save, comment or upload; with `?folder=<Drive link>`
     it reads houses read-only from a Google Drive folder shared by link (`drive.js`, Drive API with the
-    browser key from `site/config.json`)
+    browser key from `site/config.json`); comments written there are saved to the commenter's own
+    Drive (`google.js`: OAuth sign-in via `oauth.html`, scope drive.file) in a folder "OpenHomePlan
+    comments", and `server.js` imports them into houses (`importComments`, from a synced folder, or
+    once from any folder with `npm run import-comments -- <folder>`)
   - `plan2d.js` SVG floor plan and all drag interactions
   - `view3d.js` Three.js model
   - `geometry.js` room rasterising, exterior/interior wall edges, doors/windows placement
@@ -72,7 +75,9 @@ without overlaps or gaps.
 - `costs`: `{ currency, budget, prices: { key: unit price } (overrides of DEFAULT_PRICES /
   ITEM_PRICES in public/costs.js), exclude: [line ids], includeFurniture, designPct,
   contingencyPct, currency (display only), rates { date, source, values } (ECB, 1 EUR = x),
-  rateOverride { CUR: x } }`. All amounts are EUR; `estimate(house)` in `public/costs.js` computes
+  rateOverride { CUR: x }, scenarios: [{ id, name, prices, diy: [groups done by ourselves],
+  labourSaved 0–1, contingencyPct }], activeScenario }`; `estimate(house, scenarioId)` prices a
+  scenario (DIY groups lose their `LABOUR_SHARE`, `LICENSED` work keeps the contractor price). All amounts are EUR; `estimate(house)` in `public/costs.js` computes
   the lines and `moneyFor(house)` formats EUR in the display currency; `public/costExport.js`
   turns it into CSV / a printable table. Wall-mounted items (`mount` in `public/items.js`, e.g.
   `kitchen-wall` at 1.5 m) may overlap the counters below them. `/api/rates` serves the ECB
@@ -81,7 +86,9 @@ without overlaps or gaps.
   garage/shed/greenhouse/carport/pergola also take `height` and `roof` (same fields as the house
   roof, default flat); a carport/pergola with a flat `walkable` roof is a roof terrace on concrete
   pillars (`postStyle` square/column/arcade, `railing` metal/balustrade; `posts` [[x, y]…] centres
-  with `postsBox` = the outline they were placed in, so they follow moves and resizes, else automatic; `attached` = sides resting on the house or joining another deck, e.g. 'S' or 'WN'); trees/conifers/bushes/hedges use w/h as the crown and `height`; a `slope` is ground rising to
+  with `postsBox` = the outline they were placed in, so they follow moves and resizes, else automatic;
+  `postStyle` column/arcade also works under an ordinary (non-walkable) roof, with `attached`;
+  `archesX`/`archesY` set how many arches per side, `skipArches` ['E1', …] leaves arches out (`arcadeBays`); `attached` = sides resting on the house or joining another deck, e.g. 'S' or 'WN'); trees/conifers/bushes/hedges use w/h as the crown and `height`; a `slope` is ground rising to
   `height` towards `up` (N/S/E/W); any site element can be raised by `base` (m), e.g. a sauna on a
   cellar roof. The plot
   sets `street` (N/S/E/W, for the site plan label) and can carry `points` (polygon) and driveway/path `points` + `width` (curved centre line); x/y/w/h

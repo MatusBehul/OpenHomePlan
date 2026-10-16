@@ -186,7 +186,9 @@ export const isTerraceOnPosts = (s) => (s.type === 'carport' || s.type === 'perg
 // pillar styles of a terrace on posts: plain concrete, a round column, or stone piers with arches
 export const POST_STYLES = { square: 'Concrete pillars', column: 'Round columns', arcade: 'Stone arcade (piers and arches)' };
 export const RAILING_STYLES = { metal: 'Metal railing', balustrade: 'Stone balustrade' };
-export const POST_SIZE = (s) => (!isTerraceOnPosts(s) ? 0.15 : s.postStyle === 'arcade' ? 0.45 : s.postStyle === 'column' ? 0.35 : 0.3);
+// a carport or cover with stone pillars (columns or an arcade) under an ordinary roof
+export const hasStylePosts = (s) => (s.type === 'carport' || s.type === 'pergola') && (s.postStyle === 'arcade' || s.postStyle === 'column');
+export const POST_SIZE = (s) => (s.postStyle === 'arcade' && (s.type === 'carport' || s.type === 'pergola') ? 0.45 : s.postStyle === 'column' && (s.type === 'carport' || s.type === 'pergola') ? 0.35 : isTerraceOnPosts(s) ? 0.3 : 0.15);
 
 // Hand-placed posts are stored with the outline they were placed in (`postsBox`); when the
 // element is moved or resized they follow it: posts near an edge keep their distance to that
@@ -203,23 +205,46 @@ export const withPostsBox = (s) => ({ ...s, postsBox: { x: s.x, y: s.y, w: s.w, 
 
 // Post centres: `s.posts` ([[x, y], …]) if given, else round the edges, at most `max` apart,
 // leaving out the attached side.
-export function sitePosts(s, max = isTerraceOnPosts(s) ? 3.5 : 5) {
+export function sitePosts(s, max = s.postStyle === 'arcade' ? 3 : isTerraceOnPosts(s) || hasStylePosts(s) ? 3.5 : 5) {
   if (Array.isArray(s.posts) && s.posts.length) return s.postsBox ? followBox(s.posts, s.postsBox, s) : s.posts.map(([x, y]) => [x, y]);
   const p = POST_SIZE(s) / 2;
-  const along = (a, b) => {
-    const n = Math.max(1, Math.ceil((b - a) / max));
+  // archesX / archesY: how many arches (bays) along the east–west / north–south sides
+  const along = (a, b, count) => {
+    const n = count >= 1 ? Math.round(count) : Math.max(1, Math.ceil((b - a) / max));
     return Array.from({ length: n + 1 }, (_, i) => a + ((b - a) * i) / n);
   };
-  const xs = along(s.x + p, s.x + s.w - p);
-  const ys = along(s.y + p, s.y + s.h - p);
+  const xs = along(s.x + p, s.x + s.w - p, s.archesX);
+  const ys = along(s.y + p, s.y + s.h - p, s.archesY);
   const out = new Map();
   const put = (x, y) => out.set(`${x.toFixed(3)},${y.toFixed(3)}`, [x, y]);
-  const a = s.attached || '';
+  // posts leave out the attached sides (walkable decks, and covers with stone pillars)
+  const a = isTerraceOnPosts(s) || hasStylePosts(s) ? s.attached || '' : '';
   if (!a.includes('N')) for (const x of xs) put(x, ys[0]);
   if (!a.includes('S')) for (const x of xs) put(x, ys[ys.length - 1]);
   if (!a.includes('W')) for (const y of ys) put(xs[0], y);
   if (!a.includes('E')) for (const y of ys) put(xs[xs.length - 1], y);
   return [...out.values()];
+}
+
+// The arches of an arcade, side by side: [{ side, key ('S1' = first arch on the south side,
+// counted from the west / north), horiz, line, a, L, skip }] (a…a+L between the piers' faces).
+export function arcadeBays(s) {
+  const P = POST_SIZE(s);
+  const posts = sitePosts(s);
+  const e = { N: [s.x, s.y, s.x + s.w, s.y], S: [s.x, s.y + s.h, s.x + s.w, s.y + s.h], W: [s.x, s.y, s.x, s.y + s.h], E: [s.x + s.w, s.y, s.x + s.w, s.y + s.h] };
+  const skip = new Set(s.skipArches || []);
+  const out = [];
+  for (const [side, [x1, y1]] of Object.entries(e)) {
+    if ((s.attached || '').includes(side)) continue;
+    const horiz = side === 'N' || side === 'S';
+    const line = horiz ? y1 : x1;
+    const on = posts.filter(([x, y]) => Math.abs((horiz ? y : x) - line) < 0.5).map(([x, y]) => (horiz ? x : y)).sort((p, q) => p - q);
+    for (let i = 0; i + 1 < on.length; i++) {
+      const key = `${side}${i + 1}`;
+      out.push({ side, key, horiz, line, a: on[i] + P / 2, L: on[i + 1] - on[i] - P, skip: skip.has(key) });
+    }
+  }
+  return out;
 }
 
 // Open edges of a terrace on posts (everything but the attached side): [[x1, y1, x2, y2], …]

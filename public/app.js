@@ -8,7 +8,7 @@ import { resolveTarget, roomName, doorName, openingName, FACADES, OPENING_TYPES,
 import { analyzeStairs, fixStairs, allStairIssues, sortedFloors } from './stairs.js';
 import { WALL_TYPES, MATERIALS, floorWalls, setWallProps, resetWall, pruneWalls, sameLine } from './walls.js';
 import { structureIssues, structureRules } from './structure.js';
-import { ROOF_TYPES, roofInfo, siteRoof, roofText, SITE_ROOFED, SITE_ROOF_DEFAULT, ROOF_DEFAULTS, roofZones, toRoofZones, syncRoofZones, ROOF_COVERINGS, covering, POST_STYLES, RAILING_STYLES } from './roof.js';
+import { ROOF_TYPES, roofInfo, siteRoof, roofText, SITE_ROOFED, SITE_ROOF_DEFAULT, ROOF_DEFAULTS, roofZones, toRoofZones, syncRoofZones, ROOF_COVERINGS, covering, POST_STYLES, RAILING_STYLES, arcadeBays } from './roof.js';
 import { collectIssues } from './issues.js';
 import { ITEMS, ITEM_CATEGORIES, itemInfo, newItem, rotateItem, footprint, roomAt } from './items.js';
 import { POINT_KINDS, GROUPS, generateUtilities, generateCircuits, loadSummary, pointGroup } from './utilities.js';
@@ -20,7 +20,8 @@ import { estimateCsv } from './costExport.js';
 import { FACADE_DEFAULTS, facadeSettings } from './facade.js';
 import { isShaped, SHAPED, toShape, toRect, measure, syncBox } from './shapes.js';
 import { estimate, moneyFor } from './costs.js';
-import { request, DEMO, DEMO_NOTICE, INSTALL_URL, houseFileUrl, DRIVE_FOLDER, folderIdFrom } from './backend.js';
+import { request, DEMO, DEMO_NOTICE, INSTALL_URL, houseFileUrl, DRIVE_FOLDER, folderIdFrom, driveFolderName } from './backend.js';
+import * as google from './google.js';
 
 const $ = (sel, el = document) => el.querySelector(sel);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -684,7 +685,20 @@ function renderSelection() {
         </select></label></div>`
       : ''}
     ${kind === 'site' && item.type in SITE_ROOFED
-      ? `<div class="subhead">Roof</div><div class="sub">${esc(roofText(siteRoof(item)))}</div>${roofFieldsHtml(item.roof, SITE_ROOF_DEFAULT, { withWalkable: ['carport', 'pergola'].includes(item.type) })}${['carport', 'pergola'].includes(item.type) && item.roof?.walkable
+      ? `<div class="subhead">Roof</div><div class="sub">${esc(roofText(siteRoof(item)))}</div>${roofFieldsHtml(item.roof, SITE_ROOF_DEFAULT, { withWalkable: ['carport', 'pergola'].includes(item.type) })}${['carport', 'pergola'].includes(item.type) && !item.roof?.walkable
+          ? `<div class="fields"><label>Pillars<select data-key="postStyle"><option value="">Posts (timber / steel)</option>${Object.entries(POST_STYLES).filter(([v]) => v !== 'square').map(([v, l]) => `<option value="${v}" ${v === item.postStyle ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select></label>
+             ${item.postStyle ? `<label>${item.postStyle === 'arcade' ? 'Arches' : 'Bays'} along the east–west sides<input type="number" min="1" max="20" step="1" data-key="archesX" placeholder="auto" value="${item.archesX ?? ''}"></label>
+               <label>${item.postStyle === 'arcade' ? 'Arches' : 'Bays'} along the north–south sides<input type="number" min="1" max="20" step="1" data-key="archesY" placeholder="auto" value="${item.archesY ?? ''}"></label>` : ''}
+             ${item.postStyle === 'arcade' ? `<div class="wide arch-toggles"><span>Arches (click to leave one out, e.g. in front of a door)</span>${['N', 'S', 'W', 'E']
+               .map((side) => {
+                 const bays = arcadeBays(item).filter((b) => b.side === side);
+                 if (!bays.length) return '';
+                 const label = { N: 'North', S: 'South', W: 'West', E: 'East' }[side];
+                 return `<div class="row"><b>${label}</b>${bays.map((b) => `<button class="small ${b.skip ? '' : 'active'}" data-arch="${b.key}" title="${b.skip ? 'Open bay (no arch): click to add the arch' : 'Arch: click to leave it out'}">${b.key.slice(1)}${b.skip ? ' ✕' : ''}</button>`).join('')}</div>`;
+               })
+               .join('')}</div>` : ''}
+             ${item.postStyle ? `<label>Rests on the house on<select data-key="attached"><option value="">no side</option>${[['N', 'North'], ['S', 'South'], ['E', 'East'], ['W', 'West']].map(([v, l]) => `<option value="${v}" ${v === item.attached ? 'selected' : ''}>${l} side</option>`).join('')}</select></label>` : ''}</div>`
+          : ''}${['carport', 'pergola'].includes(item.type) && item.roof?.walkable
           ? `<div class="fields"><label class="wide">Rests on the house on<select data-key="attached"><option value="">no side (pillars all round)</option>${[['N', 'North'], ['S', 'South'], ['E', 'East'], ['W', 'West'], ...(item.attached?.length > 1 ? [[item.attached, `${item.attached.split('').join(' + ')} sides`]] : [])].map(([v, l]) => `<option value="${v}" ${v === item.attached ? 'selected' : ''}>${l}${v.length === 1 ? ' side' : ''}</option>`).join('')}</select></label></div>
              <div class="fields"><label>Pillars<select data-key="postStyle">${Object.entries(POST_STYLES).map(([v, l]) => `<option value="${v}" ${v === (item.postStyle || 'square') ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select></label>
                <label>Railing<select data-key="railing">${Object.entries(RAILING_STYLES).map(([v, l]) => `<option value="${v}" ${v === (item.railing || 'metal') ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select></label></div>
@@ -703,7 +717,12 @@ function renderSelection() {
   panel.querySelectorAll('[data-key]').forEach((input) => {
     input.addEventListener('change', () => {
       const key = input.dataset.key;
-      if (input.type === 'number') {
+      if (input.type === 'number' && (key === 'archesX' || key === 'archesY')) {
+        // empty = automatic spacing
+        const n = Math.round(Number(input.value));
+        if (input.value === '' || !(n >= 1)) delete item[key];
+        else item[key] = Math.min(20, n);
+      } else if (input.type === 'number') {
         const v = round(Number(input.value));
         if (!Number.isFinite(v) || ((key === 'w' || key === 'h' || key === 'height') && v <= 0)) {
           input.value = fmt(item[key]);
@@ -718,13 +737,24 @@ function renderSelection() {
           const old = [labels[item.type]?.label, 'Garden bed', 'Shed', 'New room'];
           if (old.includes(item.name)) item.name = labels[input.value]?.label?.replace(/ \(.*\)$/, '') || item.name;
         }
-        if (key === 'attached' && !input.value) delete item.attached;
+        if ((key === 'attached' || key === 'postStyle') && !input.value) delete item[key];
         else item[key] = input.value.trim() || item[key];
       }
       store.changed();
     });
   });
   if (focused) panel.querySelector(`[data-key="${focused}"]`)?.focus();
+  panel.querySelectorAll('[data-arch]').forEach((btn) =>
+    btn.addEventListener('click', () => {
+      const set = new Set(item.skipArches || []);
+      if (set.has(btn.dataset.arch)) set.delete(btn.dataset.arch);
+      else set.add(btn.dataset.arch);
+      if (set.size) item.skipArches = [...set].sort();
+      else delete item.skipArches;
+      store.changed();
+      store.emit('selection');
+    }),
+  );
   if (kind === 'site' && item.type in SITE_ROOFED) bindRoofFields(panel, () => (item.roof ||= { ...SITE_ROOF_DEFAULT }));
   const shapeEdit = $('#shape-edit', panel);
   if (shapeEdit)
@@ -1722,10 +1752,20 @@ function commentItem(c, clickable) {
   const when = c.created ? new Date(c.created).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : '';
   return `<li class="${clickable ? 'clickable' : ''}" data-target="${esc(c.target)}">
     <div class="meta"><span>${clickable ? `<b>${esc(c.target_name)}</b> · ` : ''}${esc(when)}</span>
-      <span class="badge ${c.status === 'resolved' ? 'resolved' : ''}">${esc(c.status)}</span></div>
+      <span class="badge ${c.status === 'resolved' ? 'resolved' : ''}" ${c.pending ? 'title="In your Google Drive, waiting for the planner on the computer"' : ''}>${esc(c.pending ? 'sent' : c.status)}</span></div>
     <div class="body">${esc(body)}</div>
     ${resolution ? `<div class="resolution"><b>Resolution:</b> ${esc(resolution)}</div>` : ''}
   </li>`;
+}
+
+// comments from the online demo go to the commenter's Google Drive (needs a sign-in client id)
+const driveComments = DEMO && !!DRIVE_FOLDER && !!google.clientId();
+function rememberedAuthor() {
+  try {
+    return localStorage.getItem('openhomeplan:author') || '';
+  } catch {
+    return '';
+  }
 }
 
 function renderComments() {
@@ -1736,8 +1776,10 @@ function renderComments() {
   panel.innerHTML = `
     <h2>Comments on ${esc(t.name)}</h2>
     <ul class="comment-list">${mine.map((c) => commentItem(c, false)).join('') || '<li class="empty">No comments yet.</li>'}</ul>
-    ${DEMO ? `<p class="empty">Comments are saved as files next to your house, so they need the <a href="${INSTALL_URL}" target="_blank" rel="noopener">installed app</a>.</p>` : `<div style="margin-top:10px">
+    ${DEMO && !driveComments ? `<p class="empty">Comments are saved as files next to your house, so they need the <a href="${INSTALL_URL}" target="_blank" rel="noopener">installed app</a>${DRIVE_FOLDER ? '' : ', or a house opened from a shared Google Drive folder'}.</p>` : `<div style="margin-top:10px">
       <textarea id="comment-text" placeholder="Write a comment about ${esc(t.name)}…">${esc(draft)}</textarea>
+      ${driveComments ? `<input id="comment-author" placeholder="Your name (optional)" value="${esc(rememberedAuthor())}" style="margin-top:6px;width:100%">
+        <div class="sub" style="margin-top:4px">Saved to <b>your</b> Google Drive (folder “${google.INBOX}”); the planner on the computer picks it up. The first time, Google asks you to sign in.</div>` : ''}
       <div class="row" style="justify-content:flex-end;margin-top:6px">
         <button class="primary" id="comment-add">Add comment</button>
       </div>
@@ -1745,6 +1787,23 @@ function renderComments() {
   if ($('#comment-add', panel)) $('#comment-add', panel).onclick = async () => {
     const text = $('#comment-text', panel).value.trim();
     if (!text) return toast('Write something first', true);
+    if (driveComments) {
+      // from the online demo: saved to the commenter's own Google Drive
+      const author = $('#comment-author', panel)?.value.trim() || '';
+      try {
+        localStorage.setItem('openhomeplan:author', author);
+      } catch {}
+      try {
+        const comment = await google.saveComment({ houseFolder: store.slug, houseFolderName: driveFolderName(store.slug), houseName: store.house.name, target: store.selected, target_name: t.name, text, author });
+        $('#comment-text', panel).value = '';
+        store.comments = [comment, ...store.comments];
+        store.emit('comments');
+        toast('Comment saved to your Google Drive. The planner on your computer picks it up.');
+      } catch (err) {
+        toast(`Could not save the comment: ${err.message}`, true);
+      }
+      return;
+    }
     try {
       const { comment, commit } = await api('POST', houseApi('comments'), {
         target: store.selected,

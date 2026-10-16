@@ -20,6 +20,7 @@ function driveFolder() {
 }
 export const DRIVE_FOLDER = driveFolder();
 export const folderIdFrom = drive.folderIdFrom;
+export const driveFolderName = drive.folderName;
 
 export const DEMO_NOTICE = 'This is the online demo: nothing can be saved here. Install OpenHomePlan on your computer (free) to keep your houses.';
 export const INSTALL_URL = '../#install';

@@ -265,7 +265,7 @@ export function createPlan(container, store, opts = {}) {
         for (let x = s.x + 0.4; x < s.x + s.w - 0.2; x += 0.4) inner += `<line x1="${n(x)}" y1="${n(s.y)}" x2="${n(x)}" y2="${n(s.y + s.h)}" stroke="#a08a6a" stroke-width="${n(px)}"/>`;
       else inner += `<line x1="${n(s.x)}" y1="${n(s.y)}" x2="${n(s.x + s.w)}" y2="${n(s.y + s.h)}" stroke="#8a8278" stroke-width="${n(px)}" stroke-dasharray="${n(4 * px)} ${n(3 * px)}"/><line x1="${n(s.x + s.w)}" y1="${n(s.y)}" x2="${n(s.x)}" y2="${n(s.y + s.h)}" stroke="#8a8278" stroke-width="${n(px)}" stroke-dasharray="${n(4 * px)} ${n(3 * px)}"/>`;
       for (const [x, y] of sitePosts(s))
-        inner += terrace && s.postStyle === 'column' ? `<circle cx="${n(x)}" cy="${n(y)}" r="${n(post / 2)}" fill="#4a4a4a"/>` : `<rect x="${n(x - post / 2)}" y="${n(y - post / 2)}" width="${post}" height="${post}" fill="#4a4a4a"/>`;
+        inner += s.postStyle === 'column' ? `<circle cx="${n(x)}" cy="${n(y)}" r="${n(post / 2)}" fill="#4a4a4a"/>` : `<rect x="${n(x - post / 2)}" y="${n(y - post / 2)}" width="${post}" height="${post}" fill="#4a4a4a"/>`;
       const lines = [{ text: s.name, size: 11, weight: 600 }, { text: `${fmtArea(s.w * s.h)} m² · ${fmt(s.w)} × ${fmt(s.h)}${terrace ? ` · roof terrace at +${fmt((s.height ?? 2.4) + 0.3)} m` : ''}`, size: 10, color: '#555' }];
       return `<g class="site-el" data-target="${target}">${inner}${labelBlock(s.x + s.w / 2, s.y + s.h / 2, lines, px, s.w, s.h)}${commentMarker(s, target, px)}</g>`;
     }
@@ -431,6 +431,37 @@ export function createPlan(container, store, opts = {}) {
     }
     parts.push(hitRect(p.horizontal, coord, p.from, p.to, T, px));
     return `<g class="opening-el" data-target="${floor.id}/${o.id}">${parts.join('')}</g>`;
+  }
+
+  // The stretch of wall a window may use: the ends of a straight edge, or for a curved wall the
+  // part of the curve that faces the window's side (curved edges have no x1/x2).
+  function openingRange(place) {
+    const e = place.edge;
+    if (e.curved && place.curved) {
+      const sh = place.curved;
+      const [c, half] = place.horizontal ? [sh.cx, sh.ax] : [sh.cy, sh.by];
+      return [c - half + 0.06, c + half - 0.06];
+    }
+    return e.horizontal ? [e.x1, e.x2] : [e.y1, e.y2];
+  }
+
+  // Apply a new start/width to a window; keep the old ones if it would no longer fit on a wall
+  // (so it can never vanish while being dragged).
+  function moveOpening(floor, item, key, start, width) {
+    const before = { [key]: item[key], width: item.width };
+    if (start === item[key] && width === item.width) return;
+    // step back towards where it was until it fits (stops at the end of a curved wall)
+    const steps = Math.ceil(Math.max(Math.abs(start - before[key]), Math.abs(width - before.width)) / 0.05);
+    for (let i = 0; i <= steps; i++) {
+      const t = steps ? i / steps : 0;
+      item[key] = round(start + (before[key] - start) * t);
+      item.width = round(width + (before.width - width) * t);
+      if (placeOpening(floor, item)) {
+        if (item[key] !== before[key] || item.width !== before.width) store.changed();
+        return;
+      }
+    }
+    Object.assign(item, before);
   }
 
   // A balcony in front of opening o (placed at p): the outward direction, the wall face and its
@@ -1139,17 +1170,12 @@ export function createPlan(container, store, opts = {}) {
           store.changed();
         }
       } else {
-        const e = place.edge;
-        const [a, b] = e.horizontal ? [e.x1, e.x2] : [e.y1, e.y2];
+        const [a, b] = openingRange(place);
         if (end === 'from') from = Math.min(Math.max(along, a), to - min);
         else to = Math.max(Math.min(along, b), from + min);
         const key = place.horizontal ? 'x' : 'y';
         delete sel.item.offset;
-        if (round(from) !== sel.item[key] || round(to - from) !== sel.item.width) {
-          sel.item[key] = round(from);
-          sel.item.width = round(to - from);
-          store.changed();
-        }
+        moveOpening(sel.floor, sel.item, key, round(from), round(to - from));
       }
       return;
     }
@@ -1165,15 +1191,11 @@ export function createPlan(container, store, opts = {}) {
           store.changed();
         }
       } else {
-        const e = place.edge;
-        const [a, b] = e.horizontal ? [e.x1, e.x2] : [e.y1, e.y2];
+        const [a, b] = openingRange(place);
         const start = round(Math.min(Math.max(Math.round((along - grab) / 0.05) * 0.05, a), b - width));
         const key = place.horizontal ? 'x' : 'y';
         delete sel.item.offset;
-        if (start !== sel.item[key]) {
-          sel.item[key] = start;
-          store.changed();
-        }
+        moveOpening(sel.floor, sel.item, key, start, round(width));
       }
       return;
     }

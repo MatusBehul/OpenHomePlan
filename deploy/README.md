@@ -103,3 +103,18 @@ gcloud services api-keys get-key-string <uid> --project openhomeplan   # → sit
 ```
 
 Without `site/config.json` the build leaves the feature out.
+
+### Comments from the demo (Google sign-in)
+
+Comments written on a house from a shared folder are saved to the commenter's own Google Drive.
+The demo signs in with a plain OAuth redirect (no Google script on the page): `oauth.html` receives
+the token. Setup in the Google Cloud console (Google Auth Platform) of the project: branding (app
+name, support email, authorized domain `wadby.tech`), audience External (in Testing: add the
+commenters as test users), data access scope `https://www.googleapis.com/auth/drive.file`
+(non-sensitive), and an OAuth client of type Web application with these redirect URIs:
+
+- `https://openhomeplan.wadby.tech/demo/oauth.html`
+- `https://openhomeplan-site-4roa4bj3lq-ew.a.run.app/demo/oauth.html`
+- `http://localhost:3301/demo/oauth.html`
+
+Its client id goes into `site/config.json` as `googleClientId` (it is public; no secret is used).

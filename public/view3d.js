@@ -4,7 +4,7 @@ import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer
 import { roomColor, siteColor } from './catalog.js';
 import { bbox, exteriorEdges, interiorEdges, placeOpening, placeDoor, solidPieces, roundShape, roomOutline, curvedWalls, arcSegments, arcPoint, inRoom } from './geometry.js';
 import { analyzeStairs, sortedFloors, stairSteps } from './stairs.js';
-import { roofZones, siteRoof, openEdges, roofHeightAt, ROOF_COVERINGS, covering, isGableEnd, roundRoofs, atticRoof as atticRoofOf, atticZoneAt, atticRoofForOpening, kneeWall, isTerraceOnPosts, sitePosts, POST_SIZE, terraceRailEdges } from './roof.js';
+import { roofZones, siteRoof, openEdges, roofHeightAt, ROOF_COVERINGS, covering, isGableEnd, roundRoofs, atticRoof as atticRoofOf, atticZoneAt, atticRoofForOpening, kneeWall, isTerraceOnPosts, hasStylePosts, sitePosts, POST_SIZE, terraceRailEdges, arcadeBays } from './roof.js';
 import { floorWalls } from './walls.js';
 import { ITEMS, itemInfo, footprint, itemPoint } from './items.js';
 import { tileOrigin } from './symbols.js';
@@ -1503,8 +1503,9 @@ export function create3D(container, store) {
     // the profile is drawn in its own x/y plane: lay it along the line
     if (horiz) m.position.set(a, 0, line - (P * 0.8) / 2);
     else {
+      // turned a quarter: its span runs along +z and its thickness towards −x
       m.rotation.y = -Math.PI / 2;
-      m.position.set(line - (P * 0.8) / 2, 0, a);
+      m.position.set(line + (P * 0.8) / 2, 0, a);
     }
     m.castShadow = true;
     g.add(m);
@@ -1512,6 +1513,15 @@ export function create3D(container, store) {
     const im = (pos) => (horiz ? box(0.12, 0.1, P + 0.06, stone, pos, spring, line) : box(P + 0.06, 0.1, 0.12, stone, line, spring, pos));
     g.add(im(a), im(a + L));
     g.add(horiz ? box(0.22, 0.28, P * 0.85, stone, a + L / 2, spring + rise + 0.06, line) : box(P * 0.85, 0.28, 0.22, stone, line, spring + rise + 0.06, a + L / 2));
+  }
+
+  // One bay of an arcade: an arch, or (left out on purpose) an open bay under a plain beam.
+  function addBay(g, bay, H, P) {
+    if (!bay.skip) return addArch(g, bay.horiz, bay.line, bay.a, bay.L, H - 0.02, P);
+    const F = facadeSettings(store.house);
+    const d = P * 0.8;
+    const mid = bay.a + bay.L / 2;
+    g.add(bay.horiz ? box(bay.L, 0.35, d, mat(F.render), mid, H - 0.2, bay.line) : box(d, 0.35, bay.L, mat(F.render), bay.line, H - 0.2, mid));
   }
 
   function siteObject(s) {
@@ -1709,15 +1719,8 @@ export function create3D(container, store) {
           const T = 0.3;
           const posts = sitePosts(s);
           for (const [x, z] of posts) addPillar(g, style, x, z, 0, H, P);
-          if (style === 'arcade') {
-            // round (or flattened) arches between neighbouring piers along every open side
-            for (const [x1, z1, x2, z2] of terraceRailEdges(s)) {
-              const horiz = z1 === z2;
-              const line = horiz ? z1 : x1;
-              const on = posts.filter(([x, z]) => Math.abs((horiz ? z : x) - line) < 0.5).map(([x, z]) => (horiz ? x : z)).sort((a, b) => a - b);
-              for (let i = 0; i + 1 < on.length; i++) addArch(g, horiz, line, on[i] + P / 2, on[i + 1] - on[i] - P, H - 0.02, P);
-            }
-          }
+          // round (or flattened) arches between neighbouring piers along every open side
+          if (style === 'arcade') for (const bay of arcadeBays(s)) addBay(g, bay, H, P);
           g.add(box(s.w, T, s.h, style === 'square' ? concrete : mat(F.render), cx, H + T / 2, cz));
           g.add(box(s.w - 0.04, 0.03, s.h - 0.04, mat('#cfc7b8'), cx, H + T + 0.015, cz));
           // the slab edge: a dark fascia, or a stone cornice for the classical styles
@@ -1763,6 +1766,19 @@ export function create3D(container, store) {
             }
           }
           }
+          break;
+        }
+        if (hasStylePosts(s)) {
+          // columns or an arcade (piers with arches on the open sides) under an ordinary roof
+          const P = POST_SIZE(s);
+          const posts = sitePosts(s);
+          for (const [x, z] of posts) addPillar(g, s.postStyle, x, z, 0, H, P);
+          const F = facadeSettings(store.house);
+          const stone = mat(F.trim);
+          if (s.postStyle === 'arcade') for (const bay of arcadeBays(s)) addBay(g, bay, H, P);
+          else g.add(box(s.w, 0.28, s.h, mat(F.render), cx, H - 0.14, cz)); // an architrave on the columns
+          g.add(box(s.w + 0.1, 0.12, s.h + 0.1, stone, cx, H - 0.06, cz)); // cornice band under the eaves
+          g.add(roof(siteRoof(s), { target: `site/${s.id}`, wallMat: mat(F.render, { side: THREE.DoubleSide }) }));
           break;
         }
         // posts at the corners (and mid-way on long sides), beams, then the roof

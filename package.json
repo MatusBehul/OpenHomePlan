@@ -7,7 +7,8 @@
   "scripts": {
     "start": "node server.js",
     "test": "node --test",
-    "site": "node site/build.mjs"
+    "site": "node site/build.mjs",
+    "import-comments": "node server.js --import-comments"
   },
   "dependencies": {
     "three": "^0.186.1"

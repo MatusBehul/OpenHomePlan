@@ -43,11 +43,12 @@ const text = async (id) => (await api(fileUrl(id))).text();
 // house folder id → { files: Map(name → file), assets: Map(name → id), json }
 const houses = new Map();
 
-async function readHouseFolder(id, list) {
+async function readHouseFolder(id, list, name = null) {
   const files = new Map((list || (await children(id))).map((f) => [f.name, f]));
   const hj = files.get('house.json');
   if (!hj || hj.mimeType === FOLDER) return null;
-  const entry = { id, files, assets: new Map(), json: JSON.parse(await text(hj.id)) };
+  if (!name) name = (await (await api(`${API}/${id}?fields=name&supportsAllDrives=true&key=${driveKey()}`)).json()).name;
+  const entry = { id, name, files, assets: new Map(), json: JSON.parse(await text(hj.id)) };
   const assets = files.get('assets');
   if (assets?.mimeType === FOLDER) for (const f of await children(assets.id)) entry.assets.set(f.name, f.id);
   houses.set(id, entry);
@@ -58,7 +59,7 @@ async function readHouseFolder(id, list) {
 export async function listHouses(folderId) {
   const list = await children(folderId);
   const own = await readHouseFolder(folderId, list);
-  const entries = own ? [own] : (await Promise.all(list.filter((f) => f.mimeType === FOLDER).map((f) => readHouseFolder(f.id).catch(() => null)))).filter(Boolean);
+  const entries = own ? [own] : (await Promise.all(list.filter((f) => f.mimeType === FOLDER).map((f) => readHouseFolder(f.id, null, f.name).catch(() => null)))).filter(Boolean);
   if (!entries.length) throw new Error('Google Drive: no house.json found in this folder or its sub-folders.');
   const names = new Map(list.map((f) => [f.id, f.name]));
   return entries
@@ -110,6 +111,9 @@ function parseComment(src, name, status) {
     body: (m ? m[2] : src).trim(),
   };
 }
+
+// The Drive folder name of a house (the local planner matches comments to houses by it).
+export const folderName = (id) => houses.get(id)?.name || '';
 
 // URL of a house file such as "assets/tiles.jpg" (house must have been read already).
 export function houseFileUrl(id, file) {
