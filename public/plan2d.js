@@ -412,11 +412,16 @@ export function createPlan(container, store, opts = {}) {
       }
     }
     if (o.balcony > 0) {
-      const D = o.balcony;
-      const Wb = o.balconyWidth || Math.max(p.to - p.from + 0.8, 1.6);
-      const mid = (p.from + p.to) / 2;
+      const { D, W: Wb, mid } = balconyGeom(o, p);
       const pts = [faceAt(mid - Wb / 2, 0), faceAt(mid - Wb / 2, D), faceAt(mid + Wb / 2, D), faceAt(mid + Wb / 2, 0)];
       parts.push(`<path d="M${pts.map(([x, y]) => `${n(x)} ${n(y)}`).join(' L')}" fill="#e6dccb" fill-opacity=".7" stroke="#26282a" stroke-width="${n(1.6 * px)}"/>`);
+      if (o.balconyPillars) {
+        const P = o.balconyPillars === 'arcade' ? 0.4 : o.balconyPillars === 'column' ? 0.3 : 0.25;
+        for (const a of [mid - Wb / 2 + P / 2, mid + Wb / 2 - P / 2]) {
+          const [x, y] = faceAt(a, D - P / 2);
+          parts.push(o.balconyPillars === 'column' ? `<circle cx="${n(x)}" cy="${n(y)}" r="${n(P / 2)}" fill="#4a4a4a"/>` : `<rect x="${n(x - P / 2)}" y="${n(y - P / 2)}" width="${P}" height="${P}" fill="#4a4a4a"/>`);
+        }
+      }
     } else if (o.juliet) {
       const [x1, y1] = faceAt(p.from - 0.1, 0.2);
       const [x2, y2] = faceAt(p.to + 0.1, 0.2);
@@ -426,6 +431,19 @@ export function createPlan(container, store, opts = {}) {
     }
     parts.push(hitRect(p.horizontal, coord, p.from, p.to, T, px));
     return `<g class="opening-el" data-target="${floor.id}/${o.id}">${parts.join('')}</g>`;
+  }
+
+  // A balcony in front of opening o (placed at p): the outward direction, the wall face and its
+  // outline. `at(along, out)` gives a plan point `out` metres in front of the wall face.
+  function balconyGeom(o, p) {
+    const T = store.house.wall?.exterior ?? 0.4;
+    const outward = { N: [0, -1], S: [0, 1], W: [-1, 0], E: [1, 0] }[o.facade] || [0, 0];
+    const coord = p.horizontal ? p.y1 : p.x1;
+    const at = (along, off) => (p.horizontal ? [along, coord + outward[1] * (T / 2 + off)] : [coord + outward[0] * (T / 2 + off), along]);
+    const D = o.balcony;
+    const W = o.balconyWidth || Math.max(p.to - p.from + 0.8, 1.6);
+    const mid = (p.from + p.to) / 2;
+    return { outward, coord, T, at, D, W, mid };
   }
 
   function interiorDoor(floor, d, p, px) {
@@ -798,6 +816,16 @@ export function createPlan(container, store, opts = {}) {
         // end handles change the width
         const cur = p.horizontal ? 'ew-resize' : 'ns-resize';
         for (const [end, along] of [['from', p.from], ['to', p.to]]) parts.push(handle(`data-end="${end}"`, p.horizontal ? along : c, p.horizontal ? c : along, cur));
+        // a balcony in front: drag its outer edge for the depth, its outer corners for the width
+        if (sel.kind === 'opening' && sel.item.balcony > 0) {
+          const b = balconyGeom(sel.item, p);
+          const [dx, dy] = b.at(b.mid, b.D);
+          parts.push(handle('data-balcony="depth"', dx, dy, p.horizontal ? 'ns-resize' : 'ew-resize', 'circle'));
+          for (const side of [-1, 1]) {
+            const [wx, wy] = b.at(b.mid + (side * b.W) / 2, b.D);
+            parts.push(handle(`data-balcony="width"`, wx, wy, p.horizontal ? 'ew-resize' : 'ns-resize', 'circle'));
+          }
+        }
       }
     } else if (sel.kind === 'wall' && sel.floor === floor) {
       const w = sel.wall;
@@ -906,6 +934,16 @@ export function createPlan(container, store, opts = {}) {
     const insertEl = evt.target.closest('[data-insert]');
     const ihandle = evt.target.closest('[data-ihandle]')?.dataset.ihandle;
     const endEl = evt.target.closest('[data-end]');
+    const balconyEl = evt.target.closest('[data-balcony]');
+    if (balconyEl) {
+      svg.setPointerCapture(evt.pointerId);
+      const sel = store.resolve(store.selected);
+      const pl = sel && placeOpening(sel.floor, sel.item);
+      if (!pl) return;
+      store.beginBatch();
+      drag = { mode: 'balcony', what: balconyEl.dataset.balcony, item: sel.item, geom: balconyGeom(sel.item, pl), place: pl, start: { ...p }, moved: false };
+      return;
+    }
     if (vertexEl || insertEl || ihandle || endEl) {
       svg.setPointerCapture(evt.pointerId);
       const sel = store.resolve(store.selected);
@@ -1059,6 +1097,28 @@ export function createPlan(container, store, opts = {}) {
       if (next.x !== it.x || next.y !== it.y || next.w !== it.w || next.d !== it.d) {
         Object.assign(it, next);
         store.changed();
+      }
+      return;
+    }
+    if (drag.mode === 'balcony') {
+      // depth: distance from the wall face; width: twice the distance from the opening's middle
+      const { geom: b, place, item } = drag;
+      const snap = (v) => round(Math.round(v / 0.05) * 0.05);
+      if (drag.what === 'depth') {
+        const across = place.horizontal ? p.y : p.x;
+        const out = place.horizontal ? b.outward[1] : b.outward[0];
+        const d = Math.min(3, Math.max(0.6, snap((across - b.coord) * out - b.T / 2)));
+        if (d !== item.balcony) {
+          item.balcony = d;
+          store.changed();
+        }
+      } else {
+        const along = place.horizontal ? p.x : p.y;
+        const w = Math.min(8, Math.max(place.to - place.from + 0.2, snap(2 * Math.abs(along - b.mid))));
+        if (w !== item.balconyWidth) {
+          item.balconyWidth = w;
+          store.changed();
+        }
       }
       return;
     }

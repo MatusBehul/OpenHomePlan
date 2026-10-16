@@ -90,6 +90,7 @@ export const DEFAULT_PRICES = {
   'site-garden': ['Garden beds', 'm²', 20, 'site'],
   'site-carport': ['Carport', 'm²', 380, 'site'],
   'site-terrace-on-posts': ['Roof terrace on pillars (RC slab and pillars, waterproofing, paving)', 'm²', 720, 'site'],
+  'pillar-square': ['Concrete pillars (under balconies)', 'pc', 450, 'site'],
   'pillar-column': ['Round columns with base and capital (cast stone)', 'pc', 650, 'site'],
   'pillar-arcade': ['Arcade: rendered piers with stone arches and mouldings', 'pc', 1800, 'site'],
   balustrade: ['Stone balustrade (cast stone)', 'm', 480, 'site'],
@@ -257,6 +258,7 @@ export function estimate(house) {
   add('shutters', fq.shutters);
   add('juliet', fq.juliet);
   add('balcony', fq.balconyM2);
+  for (const [style, n] of Object.entries(fq.balconyPillars)) add(`pillar-${style}`, n);
   add('surround', fq.surround);
   add('cornice', fq.cornice);
   add('bands', fq.bands);

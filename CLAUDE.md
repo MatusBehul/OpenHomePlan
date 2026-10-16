@@ -101,7 +101,8 @@ without overlaps or gaps.
   `public/issues.js` `collectIssues(house)` lists every warning shown in the top-bar popover.
 - `facade`: `render`, `trim`, `shutters`, `plinthColor` colours and `cornice`, `quoins`, `bands`,
   `plinth`, `rustication` (bosáž) switches (`public/facade.js`); exterior openings may have `shutters`, `juliet`, `surround`, and upper-floor doors a
-  small cantilevered `balcony` (depth in m, optional `balconyWidth`, default opening + 0.8 m).
+  small `balcony` (depth in m, optional `balconyWidth`, default opening + 0.8 m; `balconyPillars`
+  square/column/arcade puts it on two pillars, otherwise it is cantilevered).
 - `wall`: default thicknesses; `targets.livingArea`; `rules.stairs`, `rules.structure`.
 
 Comment targets: `house`, `roof`, `site/<id>`, `<floorId>/<roomId|doorId|openingId>`,

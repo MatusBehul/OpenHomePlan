@@ -1341,7 +1341,14 @@ function renderOpeningPanel(panel, t, focused) {
               ? ''
               : `<label class="wide check"><input type="checkbox" data-detail="shutters" ${item.shutters ? 'checked' : ''}> Shutters</label>
                  <label class="wide check"><input type="checkbox" data-detail="juliet" ${item.juliet ? 'checked' : ''}> Juliet balcony (iron railing in front)</label>
-                 ${item.type !== 'window' && (floor.elevation ?? 0) > 1 ? `<label>Balcony depth (m, 0 = none)<input type="number" step="0.1" min="0" max="2.5" data-balcony="balcony" value="${fmt(item.balcony ?? 0)}"></label>` : ''}
+                 ${item.type !== 'window' && (floor.elevation ?? 0) > 1
+                   ? `<label>Balcony depth (m, 0 = none)<input type="number" step="0.05" min="0" max="3" data-balcony="balcony" value="${fmt(item.balcony ?? 0)}"></label>` +
+                     (item.balcony > 0
+                       ? `<label>Balcony width (m)<input type="number" step="0.05" min="0.6" max="8" data-balcony="balconyWidth" value="${fmt(item.balconyWidth || Math.max(item.width + 0.8, 1.6))}"></label>
+                          <label class="wide">Pillars under the balcony<select data-balcony-pillars><option value="">none (cantilevered)</option>${Object.entries(POST_STYLES).map(([v, l]) => `<option value="${v}" ${v === item.balconyPillars ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select></label>
+                          <div class="sub wide">In the 2D plan, drag the round handles of the balcony to change its depth and width.</div>`
+                       : '')
+                   : ''}
                  <label class="wide check"><input type="checkbox" data-detail="surround" ${item.surround ? 'checked' : ''}> Stone surround with keystone</label>`)
       }
     </div>
@@ -1383,13 +1390,23 @@ function renderOpeningPanel(panel, t, focused) {
   if (focused) panel.querySelector(`[data-key="${focused}"]`)?.focus();
   panel.querySelectorAll('[data-balcony]').forEach((input) =>
     input.addEventListener('change', () => {
-      const v = Math.min(2.5, Math.max(0, round(Number(input.value) || 0)));
-      if (v > 0) {
-        item.balcony = v;
+      const key = input.dataset.balcony;
+      const v = round(Number(input.value) || 0);
+      if (key === 'balconyWidth') {
+        if (v >= 0.6 && v <= 8) item.balconyWidth = v;
+      } else if (v > 0) {
+        item.balcony = Math.min(3, v);
         delete item.juliet; // a real balcony replaces the Juliet railing
-      } else delete item.balcony;
+      } else for (const k of ['balcony', 'balconyWidth', 'balconyPillars']) delete item[k];
       store.changed();
       store.emit('selection');
+    }),
+  );
+  panel.querySelectorAll('[data-balcony-pillars]').forEach((sel) =>
+    sel.addEventListener('change', () => {
+      if (sel.value) item.balconyPillars = sel.value;
+      else delete item.balconyPillars;
+      store.changed();
     }),
   );
   panel.querySelectorAll('[data-detail]').forEach((box) =>

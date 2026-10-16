@@ -980,12 +980,22 @@ export function create3D(container, store) {
         }
       }
       if (o.balcony > 0) {
-        // a small cantilevered balcony: slab with a stone edge, paving, iron railing on three sides
+        // a small balcony: slab with a stone edge, paving, iron railing on three sides; cantilevered
+        // or on two pillars at its outer corners (with an arch between them for the arcade style)
+        const first = g.children.length;
         const iron = mat('#26282a');
         const D = o.balcony;
         const Wb = o.balconyWidth || Math.max(w + 0.8, 1.6);
         const mid = (p.from + p.to) / 2;
         const y0 = e0;
+        if (o.balconyPillars) {
+          const style = o.balconyPillars;
+          const P = style === 'arcade' ? 0.4 : style === 'column' ? 0.3 : 0.25;
+          const across = face + (out[0] + out[1]) * (D - P / 2);
+          const ends = [mid - Wb / 2 + P / 2, mid + Wb / 2 - P / 2];
+          for (const a of ends) addPillar(g, style, p.horizontal ? a : across, p.horizontal ? across : a, 0, y0 - 0.2, P);
+          if (style === 'arcade') addArch(g, p.horizontal, across, ends[0] + P / 2, ends[1] - ends[0] - P, y0 - 0.22, P);
+        }
         at(mid, D / 2, y0 - 0.2, y0, Wb, D, trim);
         at(mid, D / 2, y0, y0 + 0.03, Wb - 0.06, D - 0.03, mat('#cfc7b8'));
         at(mid, D - 0.03, y0 + 0.98, y0 + 1.02, Wb, 0.05, iron);
@@ -996,6 +1006,8 @@ export function create3D(container, store) {
           at(a, D / 2, y0 + 0.1, y0 + 0.13, 0.03, D, iron);
           for (let c = 0.12; c < D - 0.05; c += 0.12) at(a, c, y0, y0 + 1.0, 0.018, 0.018, iron);
         }
+        // a click on the balcony selects its door (where it is edited)
+        for (const c of g.children.slice(first)) c.traverse((m) => (m.userData.target = `${floor.id}/${o.id}`));
       } else if (o.juliet) {
         const iron = mat('#26282a');
         const depth = 0.22;
@@ -1456,6 +1468,52 @@ export function create3D(container, store) {
     return grp;
   }
 
+  // A pillar of `style` ('square' concrete, 'column', 'arcade' pier) of size P from y0 up to y1.
+  function addPillar(g, style, x, z, y0, y1, P) {
+    const F = facadeSettings(store.house);
+    const stone = mat(F.trim);
+    const H = y1 - y0;
+    if (style === 'column') {
+      const shaft = new THREE.Mesh(new THREE.CylinderGeometry(P * 0.42, P * 0.48, Math.max(0.1, H - 0.36), 20), stone);
+      shaft.position.set(x, y0 + H / 2, z);
+      shaft.castShadow = true;
+      g.add(shaft, box(P + 0.06, 0.18, P + 0.06, stone, x, y0 + 0.09, z), box(P + 0.1, 0.18, P + 0.1, stone, x, y1 - 0.09, z));
+    } else if (style === 'arcade') {
+      g.add(box(P, H, P, mat(F.render), x, y0 + H / 2, z));
+      g.add(box(P + 0.08, 0.25, P + 0.08, stone, x, y0 + 0.125, z)); // plinth
+    } else g.add(box(P, H, P, mat('#d9d5cc'), x, y0 + H / 2, z));
+  }
+
+  // A round (or flattened) arch filling the span a … a+L between two piers along a line
+  // (horiz: the line runs along x at z = line), with its crown just under `top`.
+  function addArch(g, horiz, line, a, L, top, P) {
+    if (L < 0.4) return;
+    const F = facadeSettings(store.house);
+    const stone = mat(F.trim);
+    const rise = Math.max(0.2, Math.min(L / 2, top - 1.9));
+    const spring = top - 0.22 - rise;
+    const shape = new THREE.Shape();
+    shape.moveTo(0, spring);
+    shape.lineTo(0, top);
+    shape.lineTo(L, top);
+    shape.lineTo(L, spring);
+    shape.absellipse(L / 2, spring, L / 2, rise, 0, Math.PI, false);
+    const geo = new THREE.ExtrudeGeometry(shape, { depth: P * 0.8, bevelEnabled: false });
+    const m = new THREE.Mesh(geo, mat(F.render, { side: THREE.DoubleSide }));
+    // the profile is drawn in its own x/y plane: lay it along the line
+    if (horiz) m.position.set(a, 0, line - (P * 0.8) / 2);
+    else {
+      m.rotation.y = -Math.PI / 2;
+      m.position.set(line - (P * 0.8) / 2, 0, a);
+    }
+    m.castShadow = true;
+    g.add(m);
+    // impost mouldings where the arch springs, and a keystone
+    const im = (pos) => (horiz ? box(0.12, 0.1, P + 0.06, stone, pos, spring, line) : box(P + 0.06, 0.1, 0.12, stone, line, spring, pos));
+    g.add(im(a), im(a + L));
+    g.add(horiz ? box(0.22, 0.28, P * 0.85, stone, a + L / 2, spring + rise + 0.06, line) : box(P * 0.85, 0.28, 0.22, stone, line, spring + rise + 0.06, a + L / 2));
+  }
+
   function siteObject(s) {
     const g = new THREE.Group();
     const cx = s.x + s.w / 2;
@@ -1650,48 +1708,14 @@ export function create3D(container, store) {
           const P = POST_SIZE(s);
           const T = 0.3;
           const posts = sitePosts(s);
-          for (const [x, z] of posts) {
-            if (style === 'column') {
-              const shaft = new THREE.Mesh(new THREE.CylinderGeometry(P * 0.42, P * 0.48, H - 0.36, 20), stone);
-              shaft.position.set(x, H / 2, z);
-              shaft.castShadow = true;
-              g.add(shaft, box(P + 0.06, 0.18, P + 0.06, stone, x, 0.09, z), box(P + 0.1, 0.18, P + 0.1, stone, x, H - 0.09, z));
-            } else if (style === 'arcade') {
-              g.add(box(P, H, P, mat(F.render), x, H / 2, z));
-              g.add(box(P + 0.08, 0.25, P + 0.08, stone, x, 0.125, z)); // plinth
-            } else g.add(box(P, H, P, concrete, x, H / 2, z));
-          }
+          for (const [x, z] of posts) addPillar(g, style, x, z, 0, H, P);
           if (style === 'arcade') {
             // round (or flattened) arches between neighbouring piers along every open side
             for (const [x1, z1, x2, z2] of terraceRailEdges(s)) {
               const horiz = z1 === z2;
               const line = horiz ? z1 : x1;
               const on = posts.filter(([x, z]) => Math.abs((horiz ? z : x) - line) < 0.5).map(([x, z]) => (horiz ? x : z)).sort((a, b) => a - b);
-              for (let i = 0; i + 1 < on.length; i++) {
-                const a = on[i] + P / 2;
-                const L = on[i + 1] - P / 2 - a;
-                if (L < 0.4) continue;
-                const top = H - 0.02;
-                const rise = Math.min(L / 2, top - 1.9);
-                const spring = top - 0.22 - rise;
-                const shape = new THREE.Shape();
-                shape.moveTo(0, spring);
-                shape.lineTo(0, top);
-                shape.lineTo(L, top);
-                shape.lineTo(L, spring);
-                shape.absellipse(L / 2, spring, L / 2, rise, 0, Math.PI, false);
-                const geo = new THREE.ExtrudeGeometry(shape, { depth: P * 0.8, bevelEnabled: false });
-                const m = new THREE.Mesh(geo, mat(F.render, { side: THREE.DoubleSide }));
-                // the profile is drawn in its own x/y plane: lay it along the side
-                if (horiz) m.position.set(a, 0, line - (P * 0.8) / 2);
-                else { m.rotation.y = -Math.PI / 2; m.position.set(line - (P * 0.8) / 2, 0, a); }
-                m.castShadow = true;
-                g.add(m);
-                // impost mouldings where the arch springs, and a keystone
-                const im = (pos) => (horiz ? box(0.12, 0.1, P + 0.06, stone, pos, spring, line) : box(P + 0.06, 0.1, 0.12, stone, line, spring, pos));
-                g.add(im(a), im(a + L));
-                g.add(horiz ? box(0.22, 0.28, P * 0.85, stone, a + L / 2, spring + rise + 0.06, line) : box(P * 0.85, 0.28, 0.22, stone, line, spring + rise + 0.06, a + L / 2));
-              }
+              for (let i = 0; i + 1 < on.length; i++) addArch(g, horiz, line, on[i] + P / 2, on[i + 1] - on[i] - P, H - 0.02, P);
             }
           }
           g.add(box(s.w, T, s.h, style === 'square' ? concrete : mat(F.render), cx, H + T / 2, cz));

@@ -20,7 +20,7 @@ export const facadeSettings = (house) => ({ ...FACADE_DEFAULTS, ...(house.facade
 export function facadeQuantities(house, { exteriorEdges, placeOpening, sortedFloors }) {
   const f = facadeSettings(house);
   const floors = sortedFloors(house);
-  const q = { shutters: 0, juliet: 0, balconyM2: 0, balconies: 0, surround: 0, cornice: 0, bands: 0, plinth: 0, quoinsM: 0, rusticationM2: 0 };
+  const q = { shutters: 0, juliet: 0, balconyM2: 0, balconies: 0, balconyPillars: { square: 0, column: 0, arcade: 0 }, surround: 0, cornice: 0, bands: 0, plinth: 0, quoinsM: 0, rusticationM2: 0 };
   floors.forEach((floor, i) => {
     if (floor.underRoof) return;
     const edges = exteriorEdges(floor);
@@ -36,6 +36,7 @@ export function facadeQuantities(house, { exteriorEdges, placeOpening, sortedFlo
       if (o.shutters) q.shutters++;
       if (o.balcony > 0) {
         q.balconies++;
+        if (o.balconyPillars in q.balconyPillars) q.balconyPillars[o.balconyPillars] += 2;
         const p = placeOpening(floor, o, edges);
         q.balconyM2 += o.balcony * (o.balconyWidth || Math.max((p ? p.to - p.from : o.width) + 0.8, 1.6));
       } else if (o.juliet) q.juliet++;
